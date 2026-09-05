@@ -28,3 +28,6 @@ AGENTS.md
 
 # vinext generated route types
 .next/
+
+# local logs
+*.log

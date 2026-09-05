@@ -197,7 +197,10 @@ which holds three months of an e-commerce site (2020-11-01 → 2021-01-31). Set 
 key event to `purchase`. Queries against it run in your jobs project.
 
 BigQuery numbers differ slightly from the GA interface, which applies thresholding and
-modelling the raw export does not. Derivations are documented at the top of
+modelling the raw export does not. Session-scoped families (visits, landing pages,
+sources, channels, geography, devices…) attribute a whole session to the day it
+started, so a session that crosses midnight counts on its first day — the same
+convention GA uses. Derivations are documented at the top of
 `src/lib/analytics/bq-sql.ts`.
 
 ## Dashboards and widgets

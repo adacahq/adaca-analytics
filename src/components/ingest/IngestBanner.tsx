@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { fmtDay, fmtInt } from '@/lib/format';
 
 export interface RunProgress {
@@ -26,7 +25,6 @@ export interface RunProgress {
 export default function IngestBanner({ siteId, initial, all = false }: { siteId?: string; initial: RunProgress[]; all?: boolean }) {
   const [runs, setRuns] = useState<RunProgress[]>(initial);
   const [error, setError] = useState<string | null>(null);
-  const router = useRouter();
   const alive = useRef(true);
 
   useEffect(() => {
@@ -43,7 +41,10 @@ export default function IngestBanner({ siteId, initial, all = false }: { siteId?
         const failed = body.failed?.find((f) => !f.error.startsWith('quota'));
         if (failed) setError(failed.error);
         if (body.progress.length === 0) {
-          router.refresh();
+          // A full reload, not router.refresh(): widgets fetched their data
+          // while the rollups were still empty, and only a fresh page makes
+          // every widget query again.
+          window.location.reload();
           return;
         }
       } catch (e) {
