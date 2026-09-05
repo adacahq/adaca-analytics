@@ -1049,8 +1049,8 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 .rank .rr > * { position: relative; }
 .rank .rl { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 400; }
 .rank .rl small { display: block; font-size: 11px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.rank .rv { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--fg); white-space: nowrap; }
-.rank .rv i { font-style: normal; font-size: 10px; color: var(--muted); margin-left: 8px; }
+.rank .rval { font-family: var(--font-mono); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--fg); white-space: nowrap; }
+.rank .rval i { font-style: normal; font-size: 10px; color: var(--muted); margin-left: 8px; }
 
 /* ── Live dot (Realtime) ─────────────────────────────────────
    The `.rag.g` health dot with a pulse ring, gated on .canvas-motion so

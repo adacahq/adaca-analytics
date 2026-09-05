@@ -1,30 +1,28 @@
 import type { CSSProperties } from 'react';
-import { notFound, redirect } from 'next/navigation';
+import { redirect } from 'next/navigation';
+import DashboardScreen from '@/components/dashboard/DashboardScreen';
+import NewDashboardForm from '@/components/dashboard/NewDashboardForm';
 import { listSites } from '@/lib/db/sites';
-import { getDashboard } from '@/lib/db/dashboards';
-import { currentSite } from '@/lib/context';
+import type { SearchParams } from '@/lib/context';
 
 export const dynamic = 'force-dynamic';
 
-export default async function DashboardPage({ params }: { params: Promise<{ slug: string }> }) {
+export default async function DashboardPage({ params, searchParams }: { params: Promise<{ slug: string }>; searchParams: Promise<SearchParams> }) {
   const { slug } = await params;
-  const sites = await listSites();
-  const site = await currentSite(sites);
-  if (!site) redirect('/setup');
   if (slug === 'new') {
+    if ((await listSites()).length === 0) redirect('/setup');
     return (
       <div>
         <h1 className="view-title rv">New dashboard</h1>
-        <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>Start blank or from a template. Arrives with the dashboards phase.</p>
+        <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>
+          Start blank, or from one of the built-in dashboards and make it yours.
+        </p>
+        <div className="mt-8 rv" style={{ '--i': 2 } as CSSProperties}>
+          <NewDashboardForm />
+        </div>
       </div>
     );
   }
-  const dashboard = await getDashboard(slug);
-  if (!dashboard) notFound();
-  return (
-    <div>
-      <h1 className="view-title rv">{dashboard.name}</h1>
-      <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>{site.name}. Widgets arrive in the dashboards phase.</p>
-    </div>
-  );
+  if (slug === 'home') redirect('/');
+  return <DashboardScreen slug={slug} searchParams={await searchParams} />;
 }

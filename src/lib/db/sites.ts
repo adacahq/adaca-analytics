@@ -14,6 +14,7 @@ export interface Site {
   primary_source: SiteSource;
   bq_project_id: string | null;
   bq_dataset: string | null;
+  bq_key_events: string | null;
   backfill_days: number;
   last_ingested_date: string | null;
   position: number;
@@ -27,11 +28,12 @@ export interface SiteInput {
   primary_source: SiteSource;
   bq_project_id: string | null;
   bq_dataset: string | null;
+  bq_key_events?: string | null;
   backfill_days: number;
 }
 
 const COLS =
-  'id, created_at, updated_at, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, backfill_days, last_ingested_date, position';
+  'id, created_at, updated_at, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, bq_key_events, backfill_days, last_ingested_date, position';
 
 export async function listSites(): Promise<Site[]> {
   const { results } = await db()
@@ -49,8 +51,8 @@ export async function createSite(input: SiteInput): Promise<Site> {
   const pos = await db().prepare('SELECT COALESCE(MAX(position), -1) + 1 AS p FROM sites').first<{ p: number }>();
   await db()
     .prepare(
-      `INSERT INTO sites (id, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, backfill_days, position)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO sites (id, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, bq_key_events, backfill_days, position)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -61,6 +63,7 @@ export async function createSite(input: SiteInput): Promise<Site> {
       input.primary_source,
       input.bq_project_id,
       input.bq_dataset,
+      input.bq_key_events ?? null,
       input.backfill_days,
       pos?.p ?? 0,
     )

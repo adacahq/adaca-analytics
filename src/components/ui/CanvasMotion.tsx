@@ -48,8 +48,12 @@ export default function CanvasMotion() {
       return out.filter(pending);
     }
 
-    /** Finished state, no animation. */
+    /** Finished state, no animation. The transition is switched off inline
+     *  as well: a hidden tab freezes CSS transition clocks, so stamping the
+     *  end state alone would leave the element parked at opacity 0 until
+     *  the tab is next shown. */
     function settle(el: HTMLElement) {
+      el.style.transition = 'none';
       el.dataset.in = '';
       if (el.dataset.count !== undefined && !el.dataset.counted) {
         el.textContent = finalCount(el);

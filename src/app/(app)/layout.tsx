@@ -4,6 +4,7 @@ import { listSites } from '@/lib/db/sites';
 import { listDashboards } from '@/lib/db/dashboards';
 import { currentSite } from '@/lib/context';
 import { todayInZone } from '@/lib/analytics/ranges';
+import { ensureDefaultDashboards } from '@/lib/dashboard/seed';
 
 export const dynamic = 'force-dynamic';
 
@@ -13,6 +14,7 @@ export const dynamic = 'force-dynamic';
  * /setup themselves when there is no site yet (a layout cannot read the path).
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
+  await ensureDefaultDashboards();
   const [sites, dashboards] = await Promise.all([listSites(), listDashboards()]);
   const site = await currentSite(sites);
   const today = todayInZone(site?.timezone ?? 'UTC');

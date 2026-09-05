@@ -28,6 +28,9 @@ CREATE TABLE sites (
   -- jobs project).
   bq_project_id      TEXT,
   bq_dataset         TEXT,
+  -- BigQuery-only sites cannot ask the Admin API which events are key
+  -- events; a comma-separated list here stands in (default: purchase).
+  bq_key_events      TEXT,
   -- Default backfill window when a site is created / re-backfilled.
   backfill_days      INTEGER NOT NULL DEFAULT 90,
   last_ingested_date TEXT,

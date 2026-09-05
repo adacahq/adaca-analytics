@@ -1,13 +1,20 @@
+import { ensureRefreshRuns, pump } from './ingest';
+
 /**
- * The cron tick. Kept separate from the ingestion engine so the worker entry
- * has one import and the engine stays testable. Phase 2 wires
- * `advanceIngest` in here; until then the tick only proves the binding chain.
+ * The cron tick (wrangler.jsonc `triggers.crons`, every 15 minutes): queue
+ * the hourly refresh for any site that is due, then spend up to ~25 s of
+ * wall time advancing whatever is queued. Cheap when idle — a couple of D1
+ * reads. `env` is unused directly: bindings are reached through
+ * `cloudflare:workers` inside the engine.
  */
 export interface TickResult {
   summary: string;
 }
 
-export async function runScheduled(env: Env): Promise<TickResult> {
-  const row = await env.DB.prepare('SELECT COUNT(*) AS n FROM sites WHERE deleted_at IS NULL').first<{ n: number }>();
-  return { summary: `${row?.n ?? 0} site(s); nothing to do yet` };
+export async function runScheduled(_env: Env): Promise<TickResult> {
+  const queued = await ensureRefreshRuns();
+  const r = await pump({ budgetMs: 25_000, maxUnits: 60 });
+  return {
+    summary: `queued ${queued}; ${r.units} unit(s), ${r.rows} row(s); finished ${r.finished.length}; failed ${r.failed.length}; remaining ${r.remaining}`,
+  };
 }
