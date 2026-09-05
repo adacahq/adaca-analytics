@@ -673,7 +673,10 @@ span[data-tip]:focus-visible { outline: 2px solid var(--accent); outline-offset:
 
 /* ── Charts: the same card the project chart uses ───────── */
 .chart-card { border: 1px solid var(--card-line); border-radius: 14px; background: var(--card); padding: 20px; transition: background 0.9s var(--ease), border-color 0.9s var(--ease); }
-.chart-card svg { display: block; width: 100%; height: auto; }
+/* Only a chart drawn directly into the card (red's own SVGs) fills it; a
+   recharts surface sizes itself, and its 14px legend icons must stay 14px. */
+.chart-card > svg { display: block; width: 100%; height: auto; }
+.chart-card .recharts-wrapper > svg { display: block; }
 .chart-card text { font-family: var(--font-mono); }
 .chart-head { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 
@@ -1082,11 +1085,17 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 
 /* ── Widget chrome inside the dashboard grid ─────────────────
    A widget is a `.chart-card` that fills its grid cell; the body is the
-   scrolling part. Headers use the `.chart-head` row. */
+   scrolling part. Headers use the `.chart-head` row. Column headers of a
+   ranked list or a table stay pinned while the body scrolls beneath them —
+   a table's own `.tscroll` becomes the scroller so its `thead` can stick. */
 .widget { display: flex; flex-direction: column; height: 100%; padding: 16px 18px; }
 .widget .chart-head { margin-bottom: 10px; flex: none; }
 .widget .wbody { position: relative; flex: 1; min-height: 0; overflow: auto; }
 .widget .wbody.center { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; color: var(--muted); }
+.widget .rank .rh { position: sticky; top: 0; z-index: 1; background: var(--card); transition: background 0.9s var(--ease), border-color 0.9s var(--ease); }
+.widget .wbody:has(> .tscroll) { overflow: hidden; }
+.widget .tscroll { height: 100%; overflow: auto; }
+.widget .dtable thead th { position: sticky; top: 0; z-index: 1; background: var(--card); transition: background 0.9s var(--ease); }
 .wnote { font-size: 13.5px; color: var(--fg); }
 
 /* ── Builder cards: a `.card` that is a button ───────────────── */
