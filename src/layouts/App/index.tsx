@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { ConfirmProvider } from '@/components/ui/Confirm';
 import Logo from '@/components/ui/Logo';
 import { navGroups, type DashboardLink } from '@/lib/nav';
+import ThemeToggle from '@/components/ui/ThemeToggle';
 import Nav from './Nav';
 import Topbar from './Topbar';
 
@@ -61,6 +62,10 @@ export default function AppShell({
           <span>Analytics</span>
         </Link>
         <Nav groups={groups} />
+        {/* Drawer-only theme toggle: the topbar's is hidden on small screens. */}
+        <div className="sbtgl">
+          <ThemeToggle />
+        </div>
       </aside>
       <main className="page min-h-svh">
         <div className="wrap">

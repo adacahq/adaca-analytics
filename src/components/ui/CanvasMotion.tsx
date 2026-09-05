@@ -95,7 +95,10 @@ export default function CanvasMotion() {
     // Activated this mount — a node can surface in both the initial scan and a
     // mutation record before its entrance has been stamped.
     const handled = new WeakSet<HTMLElement>();
-    const attempts = new WeakMap<HTMLElement, number>();
+    // First time each node was seen: the wait for hydration is capped by wall
+    // clock, not attempts — a background tab throttles timers to ~1/s.
+    const firstSeen = new WeakMap<HTMLElement, number>();
+    const HYDRATION_WAIT_MS = 60_000;
     const hydrated = (el: HTMLElement) => Object.keys(el).some((k) => k.startsWith('__reactFiber'));
 
     function activate(input: HTMLElement[]) {
@@ -107,17 +110,17 @@ export default function CanvasMotion() {
       // props don't — so stamping now would log a hydration mismatch on
       // every page. A hydrated node owns a React fiber key; a not-yet-
       // hydrated one doesn't. Wait for the key (setTimeout, not rAF: it must
-      // still fire in a hidden tab), and give up gracefully after ~4s so a
-      // node React never claims still gets its entrance.
+      // still fire in a hidden tab). A background tab defers hydration until
+      // it is shown again, so the wait is long (a minute of wall clock) and
+      // only then does a node React never claims get its entrance anyway.
       const els: HTMLElement[] = [];
       const waiting: HTMLElement[] = [];
+      const now = Date.now();
       for (const el of candidates) {
-        const tries = attempts.get(el) ?? 0;
-        if (hydrated(el) || tries > 100) els.push(el);
-        else {
-          attempts.set(el, tries + 1);
-          waiting.push(el);
-        }
+        const since = firstSeen.get(el) ?? now;
+        if (!firstSeen.has(el)) firstSeen.set(el, now);
+        if (hydrated(el) || now - since > HYDRATION_WAIT_MS) els.push(el);
+        else waiting.push(el);
       }
       if (waiting.length) setTimeout(() => activate(waiting), 40);
       if (!els.length) return;

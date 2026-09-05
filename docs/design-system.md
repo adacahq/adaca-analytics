@@ -1,4 +1,4 @@
-# Adaca Red — Design System (Canvas)
+# Adaca Analytics — Design System (Canvas)
 
 > **Single source of truth: `src/app/globals.css`.** Every token, class and
 > value in this document is read from that file, verified by grep at the
@@ -13,9 +13,9 @@
 
 ## 1. What this is
 
-Adaca Red runs on **Canvas** — the same design system as the sibling PMO
-app, forked onto its own token values. Two themes, chosen by the operator
-and nothing else:
+Adaca Analytics runs on **Canvas** — the same design system as the sibling
+Adaca Red and PMO apps, carried over token-for-token from Red. Two themes,
+chosen by the operator and nothing else:
 
 - **Light** — white, the default.
 - **Dark** — deepest ink, opt-in.
@@ -23,13 +23,13 @@ and nothing else:
 `<html data-theme="light">` is set server-side by the root layout
 (`src/app/layout.tsx`) and drives every colour in the system through one set
 of CSS custom properties. The operator's choice is persisted to
-`localStorage` under the key **`red-theme`** (`ThemeToggle.tsx`), and a
+`localStorage` under the key **`analytics-theme`** (`ThemeToggle.tsx`), and a
 head script stamps `data-theme="dark"` onto `<html>` **before paint** if
 that's what's stored:
 
 ```js
 // src/app/layout.tsx — runs in <head>, before first paint
-try{if(localStorage.getItem('red-theme')==='dark'){document.documentElement.dataset.theme='dark';}}catch(e){}
+try{if(localStorage.getItem('analytics-theme')==='dark'){document.documentElement.dataset.theme='dark';}}catch(e){}
 ```
 
 That pre-paint stamp is what prevents a flash of the wrong theme on load —
@@ -60,7 +60,7 @@ These don't change between light and dark:
 Fonts load via a plain CSS `@import` at the top of `globals.css` (Geist
 weights 300/400/500/600/700, Geist Mono 300/400/500) — **not** `next/font`.
 
-The RED analysis ramp (`--accent-1/2/3`, `--accent-tint`, `--chart-1..6`,
+The data ramp (`--accent-1/2/3`, `--accent-tint`, `--chart-1..6`,
 default `--series-1..6`) also lives in this theme-invariant block — see §3.
 
 ### 2.2 Light theme (default — `html`, `html[data-theme='light']`)
@@ -127,9 +127,9 @@ only the blue chrome does:
 
 | Token | Value | Role |
 |---|---|---|
-| `--accent-1` | `#ffc7ad` | RED axis: **Relevance** |
-| `--accent-2` | `#f87854` | RED axis: **Extent** |
-| `--accent-3` | `#cf4422` | RED axis: **Duration** |
+| `--accent-1` | `#ffc7ad` | Three-step shorthand: light |
+| `--accent-2` | `#f87854` | Three-step shorthand: mid |
+| `--accent-3` | `#cf4422` | Three-step shorthand: deep |
 | `--accent-tint` | `rgba(248, 120, 84, 0.12)` | A faint orange fill — used for `.docs-prose blockquote` backgrounds (paired with an `--accent`/blue left border there; that combination is existing markdown-prose styling, not a chrome/data violation worth copying elsewhere). |
 | `--chart-1` … `--chart-6` | `#ffd8c2 → #fbb088 → #f6814f → #e85d30 → #c2451f → #8f3417` | The six-step chart-series ramp, lightest to deepest. |
 
@@ -721,3 +721,27 @@ unused `canvas/*` components they belonged to. **Do not reintroduce
 `.canvas-grid`** (the old dot-grid texture) or the `§NN` section-header/
 rev-stamp furniture (`.section-header`, `.zone-tag`, `.rev-tag`) — none of
 it survived the port, and nothing in the current app expects it.
+
+
+---
+
+## 13. Analytics idioms
+
+What this app adds on top of Canvas (the `ANALYTICS IDIOMS` block at the end
+of `globals.css`). Every value sits on the scales above.
+
+| Class | What it is |
+|---|---|
+| `.kpi`, `.kv`, `.kf`, `.kspark` | The KPI tile: a mono figure (`.slate` grammar at card size), the footer row with its delta, and a 34px sparkline in `--series-1`. |
+| `.delta`, `.delta.up`, `.delta.down` | Relative change against the previous period, coloured by the semantic tones because it is state, not a series. |
+| `.rank`, `.rh`, `.rr`, `.rl`, `.rval` | The ranked list: header row, then rows with a `--w`-driven `--series-1` share wash behind label and value. **`.rval`, not `.rv`** — `.rv` is the reveal class. |
+| `.live` | The realtime readout: a `.rag.g` dot with a `.canvas-motion`-gated pulse ring. |
+| `.tbctl`, `.tbbtn` | Topbar readout buttons (site switcher, period) in the `.tbswitch` grammar, each dropping a `.tbpanel`; `.tbpanel.range` is the period form, `.tbpanel.center` centres under its trigger. |
+| `.widget`, `.wbody`, `.wbody.center`, `.wnote` | A `.chart-card` that fills its grid cell; the scrolling body; a centred empty/error message; note prose. |
+| `.pick`, `.pick.on` | A `.card` that is a button — the builder's category / dataset / chart-type choices. |
+| `.sbtgl` | The drawer-only theme toggle, shown under 900px where the topbar's is hidden. |
+
+Small screens (`max-width: 640px`): the topbar drops its mono labels and the
+theme toggle, and the dashboard grid stops being a grid — widgets stack
+full-width with resize handles hidden (react-grid-layout's inline transforms
+lose to `!important` overrides on purpose).

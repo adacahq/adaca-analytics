@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import Modal from '@/components/ui/Modal';
 import { useConfirm } from '@/components/ui/Confirm';
@@ -13,7 +13,6 @@ import type { Dashboard, WidgetInstance } from '@/lib/dashboard/types';
 /** The dashboard's overflow: reset to template, duplicate, rename, delete. */
 export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashboard; onReset: (layout: WidgetInstance[]) => void }) {
   const pathname = usePathname() ?? '/';
-  const router = useRouter();
   const confirm = useConfirm();
   const { ref, open, toggle, close } = usePanel<HTMLDivElement>(pathname);
   const [renaming, setRenaming] = useState(false);
@@ -42,21 +41,16 @@ export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashb
     close();
     startTransition(async () => {
       const r = await duplicateDashboardAction(dashboard.id);
-      if (r.ok) {
-        toast.success('Dashboard duplicated');
-        router.push(dashboardHref(r.data.slug));
-      } else toast.error(r.error);
+      if (r.ok) window.location.assign(dashboardHref(r.data.slug));
+      else toast.error(r.error);
     });
   }
 
   function rename() {
     startTransition(async () => {
       const r = await renameDashboardAction(dashboard.id, name);
-      if (r.ok) {
-        setRenaming(false);
-        toast.success('Renamed');
-        router.refresh();
-      } else toast.error(r.error);
+      if (r.ok) window.location.reload();
+      else toast.error(r.error);
     });
   }
 
@@ -66,10 +60,8 @@ export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashb
     if (!ok) return;
     startTransition(async () => {
       const r = await deleteDashboardAction(dashboard.id);
-      if (r.ok) {
-        toast.success('Dashboard deleted');
-        router.push('/');
-      } else toast.error(r.error);
+      if (r.ok) window.location.assign('/');
+      else toast.error(r.error);
     });
   }
 

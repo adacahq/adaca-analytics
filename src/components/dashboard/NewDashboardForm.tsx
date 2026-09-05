@@ -1,14 +1,12 @@
 'use client';
 
 import { useState, useTransition } from 'react';
-import { useRouter } from 'next/navigation';
 import { createDashboardAction } from '@/lib/dashboard/actions';
 import { TEMPLATES } from '@/lib/dashboard/templates';
 import { dashboardHref } from '@/lib/nav';
 
 /** /d/new — a name, and either a blank board or a copy of one of the six templates. */
 export default function NewDashboardForm() {
-  const router = useRouter();
   const [name, setName] = useState('');
   const [template, setTemplate] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -18,10 +16,10 @@ export default function NewDashboardForm() {
     setError(null);
     startTransition(async () => {
       const r = await createDashboardAction({ name, templateKey: template });
-      if (r.ok) {
-        router.push(dashboardHref(r.data.slug));
-        router.refresh();
-      } else setError(r.error);
+      // Full load: the rail is rendered by the layout, which a client
+      // navigation would serve from its cache without the new board.
+      if (r.ok) window.location.assign(dashboardHref(r.data.slug));
+      else setError(r.error);
     });
   }
 

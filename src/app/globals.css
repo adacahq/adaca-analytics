@@ -1094,3 +1094,25 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 .pick h3 { margin-top: 0; }
 .pick.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, var(--card)); }
 .pick[disabled] { opacity: 0.45; cursor: not-allowed; transform: none; box-shadow: none; }
+
+/* ── Small screens ────────────────────────────────────────────
+   Below 640px the topbar keeps Menu · site · period and drops the mono
+   readout labels; the theme toggle moves into the drawer (`.sbtgl`). The
+   dashboard grid stops being a grid: widgets stack full-width in their
+   own height, and drag/resize handles go away — react-grid-layout's
+   inline transforms lose to these !important overrides on purpose. */
+.sbtgl { display: none; padding: 10px 8px 0; margin-top: auto; }
+@media (max-width: 900px) {
+  .sbtgl { display: block; }
+  .sb nav { margin-bottom: 8px; }
+}
+@media (max-width: 640px) {
+  .tb .tgl { display: none; }
+  .tbbtn .tbsect { display: none; }
+  .tbbtn { padding: 7px 8px; gap: 6px; }
+  .tbbtn b { max-width: 120px; }
+  .tb > .tbctl:last-child { display: none; }
+  .react-grid-layout { height: auto !important; display: flex; flex-direction: column; gap: 14px; }
+  .react-grid-item { position: relative !important; transform: none !important; width: 100% !important; left: 0; top: 0; }
+  .react-resizable-handle { display: none !important; }
+}
