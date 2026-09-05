@@ -233,8 +233,14 @@ accounts.
 
 Almost every value on a dashboard opens: a source, a page, a landing page, a channel,
 a campaign, a referrer, a country, a city, a device, an OS, an event… Ranked-list rows,
-table cells and the marks on bar and donut charts are links to `/detail/<kind>/<value>`,
-carrying the dashboard's period along.
+table cells, bars, columns, donut sectors, the legend entries and axis labels beside
+them, and KPI tiles narrowed to one value by an exact filter are all links to
+`/detail/<kind>/<value>`, carrying the dashboard's period along. Marks over time work
+the other way: a click on a day, week or month in a line or column chart (or on its
+date label) narrows the page to that span, on dashboards and on detail pages alike.
+Every clickable mark says so in its tooltip and takes the pointer; the few that
+cannot open anything (day-of-week columns, realtime minutes, site-wide totals) stay
+plain.
 
 A detail page shows, for the chosen period and the period before:
 

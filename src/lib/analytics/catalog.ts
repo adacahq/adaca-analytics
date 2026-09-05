@@ -48,6 +48,8 @@ export interface Dataset {
   drill?: EntityKind;
   /** Pair-backed datasets: the label of the other key, which the filter UI targets. */
   otherLabel?: string;
+  /** What an exact filter on each stored key opens (defaults to `drill` for the shown key). */
+  keyKinds?: { key1?: EntityKind; key2?: EntityKind };
 }
 
 const SESSION_METRICS: MetricKey[] = ['sessions', 'users', 'newUsers', 'engagedSessions', 'engagementRate', 'bounceRate', 'avgEngagementTime', 'pageviews', 'keyEvents', 'keyEventRate'];
@@ -78,20 +80,20 @@ export const DATASETS: Dataset[] = [
   { key: 'realtime.events', category: 'realtime', label: 'Events now', description: 'Events fired in the last 30 minutes.', report: 'rt_events', dim: 'key1', dimLabel: 'Event', metrics: ['eventCount'], defaultMetric: 'eventCount', charts: ['list', 'bar', 'table'], live: true, drill: 'event' },
   // Acquisition
   { key: 'acquisition.channels', category: 'acquisition', label: 'Channels', description: 'Default channel groups: Direct, Organic Search, Referral, Social…', report: 'channel', dim: 'key1', dimLabel: 'Channel', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'channel' },
-  { key: 'acquisition.sources', category: 'acquisition', label: 'Sources', description: 'The site or app a visit came from.', report: 'source', dim: 'key1', dimLabel: 'Source', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'source' },
-  { key: 'acquisition.mediums', category: 'acquisition', label: 'Mediums', description: 'How a visit arrived: organic, referral, cpc, email…', report: 'source', dim: 'key2', dimLabel: 'Medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'medium' },
-  { key: 'acquisition.sourceMedium', category: 'acquisition', label: 'Source / medium', description: 'Source and medium together.', report: 'source', dim: 'key1', subDim: 'key2', dimLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'sourceMedium' },
-  { key: 'acquisition.campaigns', category: 'acquisition', label: 'Campaigns', description: 'Tagged campaigns (utm_campaign).', report: 'campaign', dim: 'key1', subDim: 'key2', dimLabel: 'Campaign', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'campaign' },
+  { key: 'acquisition.sources', category: 'acquisition', label: 'Sources', description: 'The site or app a visit came from.', report: 'source', dim: 'key1', dimLabel: 'Source', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'source', keyKinds: { key2: 'medium' } },
+  { key: 'acquisition.mediums', category: 'acquisition', label: 'Mediums', description: 'How a visit arrived: organic, referral, cpc, email…', report: 'source', dim: 'key2', dimLabel: 'Medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'medium', keyKinds: { key1: 'source' } },
+  { key: 'acquisition.sourceMedium', category: 'acquisition', label: 'Source / medium', description: 'Source and medium together.', report: 'source', dim: 'key1', subDim: 'key2', dimLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'sourceMedium', keyKinds: { key1: 'source', key2: 'medium' } },
+  { key: 'acquisition.campaigns', category: 'acquisition', label: 'Campaigns', description: 'Tagged campaigns (utm_campaign).', report: 'campaign', dim: 'key1', subDim: 'key2', dimLabel: 'Campaign', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'campaign', keyKinds: { key2: 'source' } },
   { key: 'acquisition.referrers', category: 'acquisition', label: 'Referrers', description: 'Referring hostnames on pageviews.', report: 'referrer', dim: 'key1', dimLabel: 'Referrer', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'referrer' },
   // Content
-  { key: 'content.pages', category: 'content', label: 'Pages viewed', description: 'Pageviews and engagement by page path.', report: 'page', dim: 'key1', subDim: 'key2', dimLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page' },
-  { key: 'content.titles', category: 'content', label: 'Page titles', description: 'The same, by page title.', report: 'page', dim: 'key2', dimLabel: 'Title', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'title' },
+  { key: 'content.pages', category: 'content', label: 'Pages viewed', description: 'Pageviews and engagement by page path.', report: 'page', dim: 'key1', subDim: 'key2', dimLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page', keyKinds: { key2: 'title' } },
+  { key: 'content.titles', category: 'content', label: 'Page titles', description: 'The same, by page title.', report: 'page', dim: 'key2', dimLabel: 'Title', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'title', keyKinds: { key1: 'page' } },
   { key: 'content.landing', category: 'content', label: 'Landing pages', description: 'The first page of each visit.', report: 'landing', dim: 'key1', dimLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'landing' },
   // Audience
-  { key: 'audience.countries', category: 'audience', label: 'Countries', description: 'Visits by country.', report: 'geo', dim: 'key1', dimLabel: 'Country', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'country' },
-  { key: 'audience.cities', category: 'audience', label: 'Cities', description: 'Visits by city.', report: 'geo', dim: 'key2', dimLabel: 'City', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'city' },
-  { key: 'audience.devices', category: 'audience', label: 'Devices', description: 'Desktop, mobile, tablet.', report: 'device', dim: 'key1', dimLabel: 'Device', metrics: SESSION_METRICS, defaultMetric: 'users', charts: ['donut', ...RANKED.filter((c) => c !== 'donut')], live: false, drill: 'device' },
-  { key: 'audience.os', category: 'audience', label: 'Operating systems', description: 'Windows, macOS, iOS, Android…', report: 'device', dim: 'key2', dimLabel: 'OS', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'os' },
+  { key: 'audience.countries', category: 'audience', label: 'Countries', description: 'Visits by country.', report: 'geo', dim: 'key1', dimLabel: 'Country', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'country', keyKinds: { key2: 'city' } },
+  { key: 'audience.cities', category: 'audience', label: 'Cities', description: 'Visits by city.', report: 'geo', dim: 'key2', dimLabel: 'City', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'city', keyKinds: { key1: 'country' } },
+  { key: 'audience.devices', category: 'audience', label: 'Devices', description: 'Desktop, mobile, tablet.', report: 'device', dim: 'key1', dimLabel: 'Device', metrics: SESSION_METRICS, defaultMetric: 'users', charts: ['donut', ...RANKED.filter((c) => c !== 'donut')], live: false, drill: 'device', keyKinds: { key2: 'os' } },
+  { key: 'audience.os', category: 'audience', label: 'Operating systems', description: 'Windows, macOS, iOS, Android…', report: 'device', dim: 'key2', dimLabel: 'OS', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'os', keyKinds: { key1: 'device' } },
   { key: 'audience.browsers', category: 'audience', label: 'Browsers', description: 'Chrome, Safari, Firefox…', report: 'browser', dim: 'key1', dimLabel: 'Browser', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'browser' },
   { key: 'audience.languages', category: 'audience', label: 'Languages', description: 'Browser language of visitors.', report: 'language', dim: 'key1', dimLabel: 'Language', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'language' },
   { key: 'audience.screens', category: 'audience', label: 'Screen resolutions', description: 'Viewport sizes (GA4 API sites only).', report: 'screen', dim: 'key1', dimLabel: 'Resolution', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'screen' },
@@ -102,19 +104,19 @@ export const DATASETS: Dataset[] = [
   { key: 'behaviour.hours', category: 'behaviour', label: 'Hour of day', description: 'When people visit, by hour of the property’s day.', report: 'hour', dim: 'key1', dimLabel: 'Hour', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: ['column', 'line', 'bar', 'table'], live: false, drill: 'hour' },
   // Drill-down pairs — two dimensions stored together. Filter on the other key to
   // narrow ("Pages by source" + filter Source / medium = "google / organic").
-  { key: 'acquisition.sourcesByPage', category: 'acquisition', label: 'Sources by page', description: 'Source / medium of the visits that viewed a page. Add a filter on Page to narrow.', report: 'sm_page', dim: 'key1', dimLabel: 'Source / medium', otherLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'sourceMedium' },
-  { key: 'acquisition.sourcesByLanding', category: 'acquisition', label: 'Sources by landing page', description: 'Source / medium of visits that started on a landing page. Add a filter on Landing page to narrow.', report: 'sm_landing', dim: 'key1', dimLabel: 'Source / medium', otherLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'sourceMedium' },
-  { key: 'acquisition.channelsByLanding', category: 'acquisition', label: 'Channels by landing page', description: 'Channel of visits that started on a landing page. Add a filter on Landing page to narrow.', report: 'channel_landing', dim: 'key1', dimLabel: 'Channel', otherLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'channel' },
-  { key: 'content.pagesBySource', category: 'content', label: 'Pages by source', description: 'Pages viewed, by the visit’s source / medium. Add a filter on Source / medium to narrow.', report: 'sm_page', dim: 'key2', dimLabel: 'Page', otherLabel: 'Source / medium', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page' },
-  { key: 'content.pagesByChannel', category: 'content', label: 'Pages by channel', description: 'Pages viewed, by the visit’s channel. Add a filter on Channel to narrow.', report: 'channel_page', dim: 'key2', dimLabel: 'Page', otherLabel: 'Channel', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page' },
-  { key: 'content.pagesByReferrer', category: 'content', label: 'Pages by referrer', description: 'Pages viewed, by referring host. Add a filter on Referrer to narrow.', report: 'referrer_page', dim: 'key2', dimLabel: 'Page', otherLabel: 'Referrer', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page' },
-  { key: 'content.landingBySource', category: 'content', label: 'Landing pages by source', description: 'Where visits from a source / medium land. Add a filter on Source / medium to narrow.', report: 'sm_landing', dim: 'key2', dimLabel: 'Landing page', otherLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'landing' },
-  { key: 'content.landingByCampaign', category: 'content', label: 'Landing pages by campaign', description: 'Where a campaign’s visits land. Add a filter on Campaign to narrow.', report: 'campaign_landing', dim: 'key2', dimLabel: 'Landing page', otherLabel: 'Campaign', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'landing' },
-  { key: 'audience.countriesByPage', category: 'audience', label: 'Countries by page', description: 'Where the viewers of a page are. Add a filter on Page to narrow.', report: 'page_country', dim: 'key2', dimLabel: 'Country', otherLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'country' },
-  { key: 'audience.countriesBySource', category: 'audience', label: 'Countries by source', description: 'Where visits from a source / medium come from. Add a filter on Source / medium to narrow.', report: 'sm_country', dim: 'key2', dimLabel: 'Country', otherLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'country' },
-  { key: 'audience.devicesByLanding', category: 'audience', label: 'Devices by landing page', description: 'Devices of visits that started on a landing page. Add a filter on Landing page to narrow.', report: 'landing_device', dim: 'key2', dimLabel: 'Device', otherLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: ['donut', ...RANKED.filter((c) => c !== 'donut')], live: false, drill: 'device' },
-  { key: 'behaviour.eventsByPage', category: 'behaviour', label: 'Events by page', description: 'Events fired on a page. Add a filter on Page to narrow.', report: 'page_event', dim: 'key2', dimLabel: 'Event', otherLabel: 'Page', metrics: ['eventCount', 'users', 'sessions', 'keyEvents'], defaultMetric: 'eventCount', charts: RANKED, live: false, drill: 'event' },
-  { key: 'behaviour.eventsBySource', category: 'behaviour', label: 'Events by source', description: 'Events fired by visits from a source / medium. Add a filter on Source / medium to narrow.', report: 'sm_event', dim: 'key2', dimLabel: 'Event', otherLabel: 'Source / medium', metrics: ['eventCount', 'users', 'sessions', 'keyEvents'], defaultMetric: 'eventCount', charts: RANKED, live: false, drill: 'event' },
+  { key: 'acquisition.sourcesByPage', category: 'acquisition', label: 'Sources by page', description: 'Source / medium of the visits that viewed a page. Add a filter on Page to narrow.', report: 'sm_page', dim: 'key1', dimLabel: 'Source / medium', otherLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'sourceMedium', keyKinds: { key2: 'page' } },
+  { key: 'acquisition.sourcesByLanding', category: 'acquisition', label: 'Sources by landing page', description: 'Source / medium of visits that started on a landing page. Add a filter on Landing page to narrow.', report: 'sm_landing', dim: 'key1', dimLabel: 'Source / medium', otherLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'sourceMedium', keyKinds: { key2: 'landing' } },
+  { key: 'acquisition.channelsByLanding', category: 'acquisition', label: 'Channels by landing page', description: 'Channel of visits that started on a landing page. Add a filter on Landing page to narrow.', report: 'channel_landing', dim: 'key1', dimLabel: 'Channel', otherLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'channel', keyKinds: { key2: 'landing' } },
+  { key: 'content.pagesBySource', category: 'content', label: 'Pages by source', description: 'Pages viewed, by the visit’s source / medium. Add a filter on Source / medium to narrow.', report: 'sm_page', dim: 'key2', dimLabel: 'Page', otherLabel: 'Source / medium', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page', keyKinds: { key1: 'sourceMedium' } },
+  { key: 'content.pagesByChannel', category: 'content', label: 'Pages by channel', description: 'Pages viewed, by the visit’s channel. Add a filter on Channel to narrow.', report: 'channel_page', dim: 'key2', dimLabel: 'Page', otherLabel: 'Channel', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page', keyKinds: { key1: 'channel' } },
+  { key: 'content.pagesByReferrer', category: 'content', label: 'Pages by referrer', description: 'Pages viewed, by referring host. Add a filter on Referrer to narrow.', report: 'referrer_page', dim: 'key2', dimLabel: 'Page', otherLabel: 'Referrer', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page', keyKinds: { key1: 'referrer' } },
+  { key: 'content.landingBySource', category: 'content', label: 'Landing pages by source', description: 'Where visits from a source / medium land. Add a filter on Source / medium to narrow.', report: 'sm_landing', dim: 'key2', dimLabel: 'Landing page', otherLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'landing', keyKinds: { key1: 'sourceMedium' } },
+  { key: 'content.landingByCampaign', category: 'content', label: 'Landing pages by campaign', description: 'Where a campaign’s visits land. Add a filter on Campaign to narrow.', report: 'campaign_landing', dim: 'key2', dimLabel: 'Landing page', otherLabel: 'Campaign', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'landing', keyKinds: { key1: 'campaign' } },
+  { key: 'audience.countriesByPage', category: 'audience', label: 'Countries by page', description: 'Where the viewers of a page are. Add a filter on Page to narrow.', report: 'page_country', dim: 'key2', dimLabel: 'Country', otherLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'country', keyKinds: { key1: 'page' } },
+  { key: 'audience.countriesBySource', category: 'audience', label: 'Countries by source', description: 'Where visits from a source / medium come from. Add a filter on Source / medium to narrow.', report: 'sm_country', dim: 'key2', dimLabel: 'Country', otherLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'country', keyKinds: { key1: 'sourceMedium' } },
+  { key: 'audience.devicesByLanding', category: 'audience', label: 'Devices by landing page', description: 'Devices of visits that started on a landing page. Add a filter on Landing page to narrow.', report: 'landing_device', dim: 'key2', dimLabel: 'Device', otherLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: ['donut', ...RANKED.filter((c) => c !== 'donut')], live: false, drill: 'device', keyKinds: { key1: 'landing' } },
+  { key: 'behaviour.eventsByPage', category: 'behaviour', label: 'Events by page', description: 'Events fired on a page. Add a filter on Page to narrow.', report: 'page_event', dim: 'key2', dimLabel: 'Event', otherLabel: 'Page', metrics: ['eventCount', 'users', 'sessions', 'keyEvents'], defaultMetric: 'eventCount', charts: RANKED, live: false, drill: 'event', keyKinds: { key1: 'page' } },
+  { key: 'behaviour.eventsBySource', category: 'behaviour', label: 'Events by source', description: 'Events fired by visits from a source / medium. Add a filter on Source / medium to narrow.', report: 'sm_event', dim: 'key2', dimLabel: 'Event', otherLabel: 'Source / medium', metrics: ['eventCount', 'users', 'sessions', 'keyEvents'], defaultMetric: 'eventCount', charts: RANKED, live: false, drill: 'event', keyKinds: { key1: 'sourceMedium' } },
   { key: 'behaviour.weekdays', category: 'behaviour', label: 'Day of week', description: 'Visits by weekday, from the daily totals.', report: 'totals', dim: 'none', dimLabel: 'Weekday', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: ['column', 'bar', 'table'], live: false },
 ];
 
@@ -129,10 +131,34 @@ export function isOrdinal(ds: Dataset): boolean {
   return ds.key === 'behaviour.hours' || ds.key === 'behaviour.weekdays' || ds.key === 'realtime.minutes';
 }
 
-/** The value a ranked row opens when its dataset drills: source / medium rows combine key and sub. */
-export function drillValue(ds: Dataset, row: { key: string; sub?: string }): string {
-  if (ds.key === 'acquisition.sourceMedium' && row.sub) return `${row.key} / ${row.sub}`;
-  return row.key;
+/** The value a ranked row opens when its dataset drills: the stored value (not the
+ *  display label), and source / medium rows combine key and sub. */
+export function drillValue(ds: Dataset, row: { key: string; sub?: string; raw?: string }): string {
+  const value = row.raw ?? row.key;
+  if (ds.key === 'acquisition.sourceMedium' && row.sub) return `${value} / ${row.sub}`;
+  return value;
+}
+
+/** The entity an exact filter on one stored key names, or null when that key is not an entity. */
+export function filterKind(ds: Dataset, dim: 'key1' | 'key2'): EntityKind | null {
+  const explicit = ds.keyKinds?.[dim];
+  if (explicit) return explicit;
+  return ds.dim === dim ? ds.drill ?? null : null;
+}
+
+/**
+ * Where a KPI tile opens: a widget narrowed by an exact-match filter is the
+ * figure for one entity, so the tile is a link to that entity's page. Tiles
+ * without such a filter (site-wide numbers) are not links.
+ */
+export function kpiDrill(ds: Dataset, filters: { dim: 'key1' | 'key2'; op: string; value: string }[] | undefined): { kind: EntityKind; value: string } | null {
+  if (ds.live) return null;
+  for (const f of filters ?? []) {
+    if (f.op !== 'eq' || !f.value) continue;
+    const kind = filterKind(ds, f.dim);
+    if (kind) return { kind, value: f.value };
+  }
+  return null;
 }
 
 /** Labels of key1 and key2 as the filter UI shows them: pair datasets name both sides. */

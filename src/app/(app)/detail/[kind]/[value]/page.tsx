@@ -56,7 +56,7 @@ export default async function DetailPage({ params, searchParams }: { params: Pro
             <EntityKpis kpis={data.kpis} />
           </div>
           <div className="rv mt-6" style={{ '--i': 3 } as CSSProperties}>
-            <EntityTrend metricKey={def.lead} bucket={data.trend.bucket} points={data.trend.points} title={`${lead.label} over time`} />
+            <EntityTrend metricKey={def.lead} bucket={data.trend.bucket} points={data.trend.points} title={`${lead.label} over time`} from={range.from} to={range.to} />
           </div>
           {data.breakdowns.length > 0 ? (
             <div className="rv mt-6" style={{ '--i': 4 } as CSSProperties}>

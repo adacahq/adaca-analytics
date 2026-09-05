@@ -176,3 +176,28 @@ export function autoBucket(range: { from: string; to: string }): 'day' | 'week' 
   if (days <= 400) return 'week';
   return 'month';
 }
+
+/**
+ * The days a chart bucket covers, clamped to the period it was drawn in, so a
+ * click on a day, week or month mark can narrow the page to exactly that span.
+ * Returns null for labels that are not calendar buckets (realtime minutes).
+ */
+export function bucketSpan(name: string, bucket: 'day' | 'week' | 'month' | 'minute', within: { from: string; to: string }): { from: string; to: string } | null {
+  let from: string;
+  let to: string;
+  if (bucket === 'day' && isIsoDay(name)) {
+    from = name;
+    to = name;
+  } else if (bucket === 'week' && isIsoDay(name)) {
+    from = name;
+    to = addDays(name, 6);
+  } else if (bucket === 'month' && /^\d{4}-\d{2}$/.test(name)) {
+    from = `${name}-01`;
+    to = endOfMonth(from);
+  } else {
+    return null;
+  }
+  if (from < within.from) from = within.from;
+  if (to > within.to) to = within.to;
+  return from <= to ? { from, to } : null;
+}

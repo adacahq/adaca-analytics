@@ -123,7 +123,7 @@ async function timeseries(site: Site, ds: Dataset, config: WidgetConfig, range: 
     // Align by position: day i of this period against day i of the last.
     points = points.map((p, i) => ({ ...p, previous: pvals[i]?.value ?? 0 }));
   }
-  return { kind: 'timeseries', bucket, points };
+  return { kind: 'timeseries', bucket, points, from: range.from, to: range.to };
 }
 
 async function ranked(site: Site, ds: Dataset, config: WidgetConfig, range: DateRange, defaultLimit: number): Promise<WidgetData> {
@@ -147,6 +147,7 @@ async function ranked(site: Site, ds: Dataset, config: WidgetConfig, range: Date
     const value = metricValue(metric, r as Sums);
     return {
       key: labelFor(ds, String(r.name)),
+      raw: String(r.name),
       sub: ds.subDim && r.sub !== undefined ? String(r.sub) : undefined,
       value,
       share: total > 0 && METRIC_BY_KEY[metric].kind === 'sum' ? value / total : 0,
@@ -177,7 +178,7 @@ async function table(site: Site, ds: Dataset, config: WidgetConfig, range: DateR
     kind: 'table',
     columns: [{ key: 'name', label: ds.dimLabel, metric: false }, ...metrics.map((m) => ({ key: m, label: METRIC_BY_KEY[m].short, metric: true }))],
     rows: rows.map((r) => {
-      const out: Record<string, string | number> = { name: labelFor(ds, String(r.name)) };
+      const out: Record<string, string | number> = { name: labelFor(ds, String(r.name)), raw: String(r.name) };
       if (ds.subDim && r.sub !== undefined) out.sub = String(r.sub);
       for (const m of metrics) out[m] = metricValue(m, r as Sums);
       return out;

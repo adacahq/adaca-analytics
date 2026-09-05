@@ -71,10 +71,20 @@ export interface Point {
   previous?: number;
 }
 
+/** One ranked row: the display label, the stored value it came from (for drill links), and its share. */
+export interface RankedRow {
+  key: string;
+  sub?: string;
+  value: number;
+  share: number;
+  /** The stored dimension value when it differs from the label (hours, visitor types). */
+  raw?: string;
+}
+
 /** Render-ready output of the query engine, by shape. */
 export type WidgetData =
   | { kind: 'kpi'; value: number; previous: number | null; spark: number[] }
-  | { kind: 'timeseries'; bucket: Bucket | 'minute'; points: Point[]; series?: { key: string; points: Point[] }[] }
-  | { kind: 'ranked'; rows: { key: string; sub?: string; value: number; share: number }[]; total: number }
+  | { kind: 'timeseries'; bucket: Bucket | 'minute'; points: Point[]; series?: { key: string; points: Point[] }[]; from?: string; to?: string }
+  | { kind: 'ranked'; rows: RankedRow[]; total: number }
   | { kind: 'table'; columns: { key: string; label: string; metric: boolean }[]; rows: Record<string, string | number>[] }
   | { kind: 'empty'; reason?: string };

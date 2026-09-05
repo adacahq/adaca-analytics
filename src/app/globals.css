@@ -1153,3 +1153,22 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 @media (max-width: 640px) {
   .bgrid { grid-template-columns: 1fr; }
 }
+
+/* Every chart mark that opens something says so: the KPI tile becomes a link
+   with an "open" cue, axis labels underline in the accent, the plot and the
+   donut legend take the pointer, and the tooltip carries the click hint. */
+a.kpi { color: inherit; text-decoration: none; cursor: pointer; }
+a.kpi:hover .kv, a.kpi:focus-visible .kv { color: var(--accent); }
+a.kpi:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; border-radius: 8px; }
+.kpi .kopen { margin-left: auto; font-family: var(--font-mono); font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--accent); opacity: 0.55; transition: opacity 0.3s var(--ease); }
+a.kpi:hover .kopen { opacity: 1; }
+.chart-box { position: relative; }
+.chart-click .recharts-surface { cursor: pointer; }
+.chart-click .recharts-legend-item { cursor: pointer; }
+.chart-click .recharts-legend-item:hover .recharts-legend-item-text { text-decoration: underline; text-underline-offset: 3px; }
+.tick-link { cursor: pointer; }
+.tick-link:hover { fill: var(--accent) !important; text-decoration: underline; text-underline-offset: 3px; }
+.ctip { font-family: var(--font-mono); font-size: 12px; line-height: 1.5; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; color: var(--fg); box-shadow: 0 8px 24px color-mix(in srgb, var(--fg) 8%, transparent); }
+.ctip b { display: block; font-weight: 500; margin-bottom: 2px; }
+.ctip > span { display: block; color: var(--muted); }
+.ctip small { display: block; margin-top: 6px; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }

@@ -1,35 +1,20 @@
 'use client';
 
 import type { CSSProperties } from 'react';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  LineChart,
-  Line,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-} from 'recharts';
+import { ResponsiveContainer, PieChart, Pie, Cell, BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend } from 'recharts';
 import DataTable, { type Column } from '@/components/ui/DataTable';
-import { DATASET_BY_KEY, drillValue, type Dataset } from '@/lib/analytics/catalog';
-import { entityHref, type EntityKind } from '@/lib/analytics/entities';
+import { DATASET_BY_KEY, drillValue, kpiDrill, type Dataset } from '@/lib/analytics/catalog';
+import { entityHref } from '@/lib/analytics/entities';
 import { METRIC_BY_KEY, isMetricKey, type MetricDef } from '@/lib/analytics/metrics';
 import { fmtBucket, fmtDelta, fmtInt, fmtPercent } from '@/lib/format';
-import type { WidgetConfig, WidgetData, WidgetInstance } from '@/lib/dashboard/types';
+import type { Bucket, RankedRow, WidgetConfig, WidgetData, WidgetInstance } from '@/lib/dashboard/types';
+import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useNarrow, usePeriodQuery } from './chart-helpers';
 
-// Theme-aware series slots (the direction reverses per theme in globals.css).
-const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)', 'var(--series-5)', 'var(--series-6)'];
-const axisTick = { fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--muted)' };
-const TOOLTIP = { fontSize: 12, background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 10, color: 'var(--fg)', fontFamily: 'var(--font-mono)' };
+/** Where a ranked row opens; null keeps the mark plain. */
+export type Href = ((row: { key: string; sub?: string; raw?: string }) => string | null) | null;
 
 function metricFor(config: WidgetConfig): MetricDef {
   const ds = config.dataset ? DATASET_BY_KEY[config.dataset] : undefined;
@@ -37,41 +22,20 @@ function metricFor(config: WidgetConfig): MetricDef {
   return METRIC_BY_KEY[key];
 }
 
-/* ── Drill-down links ────────────────────────────────────────────── */
-const PERIOD_KEYS = ['range', 'from', 'to', 'compare'];
-
-/** The period query to carry onto an entity page, from the current URL. */
-export function usePeriodQuery(): string {
-  const params = useSearchParams();
-  const q = new URLSearchParams();
-  for (const k of PERIOD_KEYS) {
-    const v = params?.get(k);
-    if (v) q.set(k, v);
-  }
-  return q.toString();
-}
-
-/** Where a ranked row opens, or null when the dataset does not drill. */
-export function useDrill(ds: Dataset | undefined): ((row: { key: string; sub?: string }) => string | null) | null {
+/** The drill link for rows of a dataset, from the current URL's period. */
+export function useDrill(ds: Dataset | undefined): Href {
   const query = usePeriodQuery();
   if (!ds?.drill) return null;
-  const kind: EntityKind = ds.drill;
-  return (row) => (row.key === '(other)' ? null : entityHref(kind, drillValue(ds, row), query));
+  const kind = ds.drill;
+  return (row) => ((row.raw ?? row.key) === '(other)' ? null : entityHref(kind, drillValue(ds, row), query));
 }
 
 export function Centered({ children }: { children: React.ReactNode }) {
   return <div className="wbody center">{children}</div>;
 }
 
-function ChartFrame({ children }: { children: React.ReactElement }) {
-  return (
-    <div style={{ width: '100%', height: '100%', minHeight: 120 }}>
-      <ResponsiveContainer width="100%" height="100%">
-        {children}
-      </ResponsiveContainer>
-    </div>
-  );
-}
+const OPEN_HINT = 'Click to open';
+const narrowHint = (bucket: Bucket | 'minute') => `Click to narrow to this ${bucketNoun(bucket)}`;
 
 /* ── KPI ─────────────────────────────────────────────────────────── */
 function Sparkline({ values }: { values: number[] }) {
@@ -94,12 +58,12 @@ function Sparkline({ values }: { values: number[] }) {
   );
 }
 
-function KpiBody({ value, previous, spark, metric, live }: { value: number; previous: number | null; spark: number[]; metric: MetricDef; live: boolean }) {
+function KpiBody({ value, previous, spark, metric, live, href }: { value: number; previous: number | null; spark: number[]; metric: MetricDef; live: boolean; href?: string | null }) {
   const delta = previous !== null ? fmtDelta(value, previous) : null;
   const dir = previous === null || previous === value ? 'flat' : value > previous ? 'up' : 'down';
   const good = metric.goodDirection === null ? 'flat' : dir === 'flat' ? 'flat' : (dir === 'up') === (metric.goodDirection === 'up') ? 'up' : 'down';
-  return (
-    <div className="kpi">
+  const inner = (
+    <>
       <div className="kv">{metric.format(value, true)}</div>
       <div className="kf">
         {live ? (
@@ -114,9 +78,17 @@ function KpiBody({ value, previous, spark, metric, live }: { value: number; prev
         ) : previous !== null ? (
           <span className="delta">— vs prev</span>
         ) : null}
+        {href ? <span className="kopen">open ↗</span> : null}
       </div>
       <Sparkline values={spark} />
-    </div>
+    </>
+  );
+  return href ? (
+    <a className="kpi link" href={href} title={OPEN_HINT}>
+      {inner}
+    </a>
+  ) : (
+    <div className="kpi">{inner}</div>
   );
 }
 
@@ -129,12 +101,11 @@ export function ListBody({
   href,
   mono,
 }: {
-  rows: { key: string; sub?: string; value: number; share: number }[];
+  rows: RankedRow[];
   metric: MetricDef;
   dimLabel: string;
   showAs?: 'value' | 'percent';
-  /** Where a row opens (drill-down); rows returning null stay plain. */
-  href?: ((row: { key: string; sub?: string }) => string | null) | null;
+  href?: Href;
   mono?: boolean;
 }) {
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
@@ -162,7 +133,7 @@ export function ListBody({
           </>
         );
         return to ? (
-          <a key={`${r.key}-${i}`} className="rr link" style={style} title={`${title} · open`} href={to}>
+          <a key={`${r.key}-${i}`} className="rr link" style={style} title={`${title} · ${OPEN_HINT.toLowerCase()}`} href={to}>
             {inner}
           </a>
         ) : (
@@ -176,88 +147,153 @@ export function ListBody({
 }
 
 /* ── Charts ──────────────────────────────────────────────────────── */
-function DonutBody({ rows, total, metric, href }: { rows: { key: string; sub?: string; value: number }[]; total: number; metric: MetricDef; href?: ((row: { key: string; sub?: string }) => string | null) | null }) {
+interface Mark {
+  name: string;
+  value: number;
+  previous?: number;
+  /** Entity page the mark opens, when it is one. */
+  to?: string | null;
+}
+
+const withLinks = (rows: RankedRow[], href: Href): Mark[] => rows.map((r) => ({ name: r.key, value: r.value, to: href ? href(r) : null }));
+
+/** Donut of shares; sectors and legend entries open their entity. */
+function DonutBody({ rows, total, metric, href }: { rows: RankedRow[]; total: number; metric: MetricDef; href?: Href }) {
   const router = useRouter();
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
   const shown = rows.reduce((a, r) => a + r.value, 0);
-  const data = [...rows.map((r) => ({ name: r.key, value: r.value, to: href ? href(r) : null }))];
+  const data: Mark[] = withLinks(rows, href ?? null);
   if (metric.kind === 'sum' && total > shown + 0.5) data.push({ name: 'Other', value: total - shown, to: null });
-  const open = (d: { to?: string | null }) => {
+  const clickable = data.some((d) => d.to);
+  const open = (i: number) => {
+    const d = data[i];
     if (d?.to) router.push(d.to);
   };
   return (
-    <ChartFrame>
-      <PieChart>
-        <Pie data={data} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="82%" paddingAngle={1} stroke="var(--bg)" startAngle={90} endAngle={-270} isAnimationActive={false} onClick={(_, i) => open(data[i])} style={href ? { cursor: 'pointer' } : undefined}>
-          {data.map((_, i) => (
-            <Cell key={i} fill={SERIES[i % SERIES.length]} />
-          ))}
-        </Pie>
-        <Tooltip contentStyle={TOOLTIP} formatter={(v) => metric.format(Number(v))} />
-        <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} />
-      </PieChart>
+    <ChartFrame clickable={clickable}>
+      <ResponsiveContainer width="100%" height="100%">
+        <PieChart>
+          <Pie data={data} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="82%" paddingAngle={1} stroke="var(--bg)" startAngle={90} endAngle={-270} isAnimationActive={false} onClick={(_, i) => open(i)}>
+            {data.map((d, i) => (
+              <Cell key={i} fill={SERIES[i % SERIES.length]} style={{ cursor: d.to ? 'pointer' : 'default', outline: 'none' }} />
+            ))}
+          </Pie>
+          <Tooltip content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={(p) => ((p as Mark | undefined)?.to ? OPEN_HINT : null)} />} />
+          <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} onClick={(e) => open(data.findIndex((d) => d.name === e.value))} />
+        </PieChart>
+      </ResponsiveContainer>
     </ChartFrame>
   );
 }
 
-function ColumnBody({ data, metric, bucket }: { data: { name: string; value: number; previous?: number }[]; metric: MetricDef; bucket?: string }) {
+/**
+ * Vertical columns. Two modes: ranked categories (a click opens the entity)
+ * or calendar buckets (a click narrows the period to that bucket).
+ */
+function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: MetricDef; bucket?: Bucket | 'minute'; narrow?: ((name: string) => void) | null }) {
+  const router = useRouter();
   if (data.length === 0) return <Centered>No data for this period</Centered>;
-  const fmtX = (v: string) => (bucket && bucket !== 'minute' ? fmtBucket(v, bucket as 'day' | 'week' | 'month') : bucket === 'minute' ? `${v}m` : v);
+  const fmtX = (v: string) => (bucket && bucket !== 'minute' ? fmtBucket(v, bucket) : bucket === 'minute' ? `${v}m` : v);
   const compare = data.some((d) => d.previous !== undefined);
+  const byName = new Map(data.map((d) => [d.name, d]));
+  const openName = narrow ? narrow : (name: string) => {
+    const d = byName.get(name);
+    if (d?.to) router.push(d.to);
+  };
+  const clickable = !!narrow || data.some((d) => d.to);
+  const hint = narrow ? narrowHint(bucket ?? 'day') : clickable ? (p: unknown) => ((p as Mark | undefined)?.to ? OPEN_HINT : null) : null;
   return (
-    <ChartFrame>
-      <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-        <CartesianGrid vertical={false} stroke="var(--line)" />
-        <XAxis dataKey="name" tick={axisTick} tickLine={false} axisLine={{ stroke: 'var(--line)' }} tickFormatter={fmtX} interval="preserveStartEnd" minTickGap={18} />
-        <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-        <Tooltip cursor={{ fill: 'var(--ghost)' }} contentStyle={TOOLTIP} labelFormatter={(l) => fmtX(String(l))} formatter={(v, name) => [metric.format(Number(v)), name === 'previous' ? 'Previous' : metric.short]} />
-        {compare ? <Bar dataKey="previous" fill={SERIES[2]} opacity={0.45} isAnimationActive={false} /> : null}
-        <Bar dataKey="value" fill={SERIES[0]} radius={[3, 3, 0, 0]} isAnimationActive={false} />
-      </BarChart>
+    <ChartFrame clickable={clickable}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          margin={{ top: 8, right: 8, bottom: 0, left: -18 }}
+          onClick={(state) => {
+            const name = clickedName(state);
+            if (name !== null && clickable) openName(name);
+          }}
+        >
+          <CartesianGrid vertical={false} stroke="var(--line)" />
+          <XAxis dataKey="name" tick={(p) => <LinkTick {...p} format={fmtX} onOpen={clickable ? openName : null} />} tickLine={false} axisLine={{ stroke: 'var(--line)' }} interval="preserveStartEnd" minTickGap={18} />
+          <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
+          <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip title={fmtX} row={(v, k) => [metric.format(v), k === 'previous' ? 'Previous' : metric.short]} hint={hint} />} />
+          {compare ? <Bar dataKey="previous" fill={SERIES[2]} opacity={0.45} isAnimationActive={false} /> : null}
+          <Bar dataKey="value" fill={SERIES[0]} radius={[3, 3, 0, 0]} isAnimationActive={false} />
+        </BarChart>
+      </ResponsiveContainer>
     </ChartFrame>
   );
 }
 
-function BarBody({ rows, metric, href }: { rows: { key: string; sub?: string; value: number }[]; metric: MetricDef; href?: ((row: { key: string; sub?: string }) => string | null) | null }) {
+/** Horizontal bars, longest first; a bar, its band and its label open the entity. */
+function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef; href?: Href }) {
   const router = useRouter();
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
-  const data = rows.map((r) => ({ name: r.key, value: r.value, to: href ? href(r) : null }));
-  const open = (d: { to?: string | null }) => {
+  const data = withLinks(rows, href ?? null);
+  const byName = new Map(data.map((d) => [d.name, d]));
+  const clickable = data.some((d) => d.to);
+  const openName = (name: string) => {
+    const d = byName.get(name);
     if (d?.to) router.push(d.to);
   };
   return (
-    <ChartFrame>
-      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 12, bottom: 0, left: 8 }} barCategoryGap={6}>
-        <CartesianGrid horizontal={false} stroke="var(--line)" />
-        <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-        <YAxis type="category" dataKey="name" tick={{ ...axisTick, fontSize: 11 }} tickLine={false} axisLine={false} width={120} />
-        <Tooltip cursor={{ fill: 'var(--ghost)' }} contentStyle={TOOLTIP} formatter={(v) => [metric.format(Number(v)), metric.short]} />
-        <Bar dataKey="value" fill={SERIES[0]} radius={[0, 3, 3, 0]} isAnimationActive={false} onClick={(_, i) => open(data[i])} style={href ? { cursor: 'pointer' } : undefined} />
-      </BarChart>
+    <ChartFrame clickable={clickable}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={data}
+          layout="vertical"
+          margin={{ top: 4, right: 12, bottom: 0, left: 8 }}
+          barCategoryGap={6}
+          onClick={(state) => {
+            const name = clickedName(state);
+            if (name !== null) openName(name);
+          }}
+        >
+          <CartesianGrid horizontal={false} stroke="var(--line)" />
+          <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
+          <YAxis type="category" dataKey="name" tick={(p) => <LinkTick {...p} size={11} onOpen={clickable ? openName : null} />} tickLine={false} axisLine={false} width={120} />
+          <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={clickable ? (p) => ((p as Mark | undefined)?.to ? OPEN_HINT : null) : null} />} />
+          <Bar dataKey="value" fill={SERIES[0]} radius={[0, 3, 3, 0]} isAnimationActive={false}>
+            {data.map((d, i) => (
+              <Cell key={i} style={{ cursor: d.to ? 'pointer' : 'default' }} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </ChartFrame>
   );
 }
 
-function LineBody({ points, metric, bucket }: { points: { name: string; value: number; previous?: number }[]; metric: MetricDef; bucket: string }) {
+/** A metric over calendar buckets; a click anywhere on the plot narrows the period to that bucket. */
+function LineBody({ points, metric, bucket, narrow }: { points: Mark[]; metric: MetricDef; bucket: Bucket | 'minute'; narrow?: ((name: string) => void) | null }) {
   if (points.length === 0) return <Centered>No data for this period</Centered>;
   const compare = points.some((p) => p.previous !== undefined);
-  const fmtX = (v: string) => (bucket === 'minute' ? `${v}m` : fmtBucket(v, bucket as 'day' | 'week' | 'month'));
+  const fmtX = (v: string) => (bucket === 'minute' ? `${v}m` : fmtBucket(v, bucket));
   return (
-    <ChartFrame>
-      <LineChart data={points} margin={{ top: 8, right: 8, bottom: 0, left: -18 }}>
-        <CartesianGrid vertical={false} stroke="var(--line)" />
-        <XAxis dataKey="name" tick={axisTick} tickLine={false} axisLine={{ stroke: 'var(--line)' }} tickFormatter={fmtX} interval="preserveStartEnd" minTickGap={24} />
-        <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-        <Tooltip contentStyle={TOOLTIP} labelFormatter={(l) => fmtX(String(l))} formatter={(v, name) => [metric.format(Number(v)), name === 'previous' ? 'Previous period' : metric.label]} />
-        {compare ? <Line type="monotone" dataKey="previous" stroke={SERIES[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false} isAnimationActive={false} /> : null}
-        <Line type="monotone" dataKey="value" stroke={SERIES[0]} strokeWidth={2} dot={false} activeDot={{ r: 3 }} isAnimationActive={false} />
-      </LineChart>
+    <ChartFrame clickable={!!narrow}>
+      <ResponsiveContainer width="100%" height="100%">
+        <LineChart
+          data={points}
+          margin={{ top: 8, right: 8, bottom: 0, left: -18 }}
+          onClick={(state) => {
+            const name = clickedName(state);
+            if (name !== null && narrow) narrow(name);
+          }}
+        >
+          <CartesianGrid vertical={false} stroke="var(--line)" />
+          <XAxis dataKey="name" tick={(p) => <LinkTick {...p} format={fmtX} onOpen={narrow ?? null} />} tickLine={false} axisLine={{ stroke: 'var(--line)' }} interval="preserveStartEnd" minTickGap={24} />
+          <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
+          <Tooltip content={<ChartTip title={fmtX} row={(v, k) => [metric.format(v), k === 'previous' ? 'Previous period' : metric.label]} hint={narrow ? narrowHint(bucket) : null} />} />
+          {compare ? <Line type="monotone" dataKey="previous" stroke={SERIES[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false} isAnimationActive={false} /> : null}
+          <Line type="monotone" dataKey="value" stroke={SERIES[0]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
+        </LineChart>
+      </ResponsiveContainer>
     </ChartFrame>
   );
 }
 
 /* ── Table ───────────────────────────────────────────────────────── */
-function TableBody({ columns, rows, href }: { columns: { key: string; label: string; metric: boolean }[]; rows: Record<string, string | number>[]; href?: ((row: { key: string; sub?: string }) => string | null) | null }) {
+function TableBody({ columns, rows, href }: { columns: { key: string; label: string; metric: boolean }[]; rows: Record<string, string | number>[]; href?: Href }) {
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
   const cols: Column<Record<string, string | number>>[] = columns.map((c) => ({
     key: c.key,
@@ -266,7 +302,7 @@ function TableBody({ columns, rows, href }: { columns: { key: string; label: str
     mono: c.metric,
     cell: (r) => {
       if (!c.metric) {
-        const to = href ? href({ key: String(r.name), sub: r.sub === undefined ? undefined : String(r.sub) }) : null;
+        const to = href ? href({ key: String(r.name), raw: r.raw === undefined ? undefined : String(r.raw), sub: r.sub === undefined ? undefined : String(r.sub) }) : null;
         const label = (
           <>
             {String(r[c.key])}
@@ -275,7 +311,7 @@ function TableBody({ columns, rows, href }: { columns: { key: string; label: str
         );
         const clip: CSSProperties = { display: 'inline-block', maxWidth: 360, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', verticalAlign: 'bottom' };
         return to ? (
-          <a className="dlink" href={to} title={`${String(r.name)} · open`} style={clip}>
+          <a className="dlink" href={to} title={`${String(r.name)} · ${OPEN_HINT.toLowerCase()}`} style={clip}>
             {label}
           </a>
         ) : (
@@ -308,17 +344,26 @@ export function WidgetBody({ instance, data }: { instance: WidgetInstance; data:
   const metric = metricFor(instance.config);
   const ds = instance.config.dataset ? DATASET_BY_KEY[instance.config.dataset] : undefined;
   const href = useDrill(ds);
+  const query = usePeriodQuery();
+  const ts = data?.kind === 'timeseries' ? data : null;
+  const narrow = useNarrow(ts?.bucket ?? 'minute', ts?.from, ts?.to);
   if (instance.type === 'note') return <NoteBody markdown={instance.config.markdown ?? ''} />;
   if (!data) return null;
+  const target = ds ? kpiDrill(ds, instance.config.filters) : null;
+  const kpiHref = target ? entityHref(target.kind, target.value, query) : null;
   switch (data.kind) {
     case 'kpi':
-      return <KpiBody value={data.value} previous={data.previous} spark={data.spark} metric={metric} live={!!ds?.live} />;
+      return <KpiBody value={data.value} previous={data.previous} spark={data.spark} metric={metric} live={!!ds?.live} href={kpiHref} />;
     case 'timeseries':
-      return instance.type === 'column' ? <ColumnBody data={data.points} metric={metric} bucket={data.bucket} /> : <LineBody points={data.points} metric={metric} bucket={data.bucket} />;
+      return instance.type === 'column' ? (
+        <ColumnBody data={data.points} metric={metric} bucket={data.bucket} narrow={narrow} />
+      ) : (
+        <LineBody points={data.points} metric={metric} bucket={data.bucket} narrow={narrow} />
+      );
     case 'ranked':
       if (instance.type === 'donut') return <DonutBody rows={data.rows} total={data.total} metric={metric} href={href} />;
       if (instance.type === 'bar') return <BarBody rows={data.rows} metric={metric} href={href} />;
-      if (instance.type === 'column' || instance.type === 'line') return <ColumnBody data={data.rows.map((r) => ({ name: r.key, value: r.value }))} metric={metric} />;
+      if (instance.type === 'column' || instance.type === 'line') return <ColumnBody data={withLinks(data.rows, href)} metric={metric} />;
       return <ListBody rows={data.rows} metric={metric} dimLabel={ds?.dimLabel ?? ''} showAs={instance.config.showAs} href={href} />;
     case 'table':
       return <TableBody columns={data.columns} rows={data.rows} href={href} />;

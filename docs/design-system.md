@@ -740,7 +740,8 @@ of `globals.css`). Every value sits on the scales above.
 | `.widget`, `.wbody`, `.wbody.center`, `.wnote` | A `.chart-card` that fills its grid cell; the scrolling body; a centred empty/error message; note prose. |
 | `.pick`, `.pick.on` | A `.card` that is a button — the builder's category / dataset / chart-type choices. |
 | `.sbtgl` | The drawer-only theme toggle, shown under 900px where the topbar's is hidden. |
-| `a.rr.link`, `.dlink` | A ranked row or table cell that opens an entity page: the cursor plus an `--accent` underline on hover say "this opens"; the share wash deepens on hover. Bar and donut marks get `cursor: pointer` and push the same URL. |
+| `a.rr.link`, `.dlink` | A ranked row or table cell that opens an entity page: the cursor plus an `--accent` underline on hover say "this opens"; the share wash deepens on hover. |
+| `.chart-click`, `.tick-link`, `.ctip`, `a.kpi`, `.kopen` | The chart affordances: a clickable plot and its legend take the pointer; axis labels that open something underline in the accent; the one tooltip (`.ctip`) lists the values and ends with the click hint in accent mono ("Click to open", "Click to narrow to this day"); a KPI tile that is a link colours its figure on hover and carries a small "open ↗" cue. Marks that open nothing keep the default cursor and no hint. |
 | `.detail`, `.bgrid`, `.bcard`, `.wnote-hint` | The entity page: the stat strip draws its own hairlines (`box-shadow`) so a wrapped last row never shows a grey block; breakdown cards sit in an auto-fill 3-up grid that stacks under 640px; the hint links to Settings when the pair families are missing. `.view-title.mono` renders paths and hosts in the mono face at a smaller size. |
 
 Small screens (`max-width: 640px`): the topbar drops its mono labels and the
