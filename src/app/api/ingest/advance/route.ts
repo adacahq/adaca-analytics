@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   const sites = new Map((await listSites()).map((s) => [s.id, s]));
   const progress = runs.map((r) => {
     const site = sites.get(r.site_id);
-    const total = site ? unitsFor(site, r.from_date, r.to_date) : 0;
+    const total = site ? unitsFor(site, r.from_date, r.to_date, r.scope) : 0;
     return { id: r.id, site_id: r.site_id, kind: r.kind, from: r.from_date, to: r.to_date, units: r.units, total, rows: r.rows_written, status: r.status };
   });
   return Response.json({ ...result, progress }, { headers: { 'Cache-Control': 'no-store' } });
@@ -31,7 +31,7 @@ export async function GET(request: Request) {
   const sites = new Map((await listSites()).map((s) => [s.id, s]));
   const progress = runs.map((r) => {
     const site = sites.get(r.site_id);
-    const total = site ? unitsFor(site, r.from_date, r.to_date) : 0;
+    const total = site ? unitsFor(site, r.from_date, r.to_date, r.scope) : 0;
     return { id: r.id, site_id: r.site_id, kind: r.kind, from: r.from_date, to: r.to_date, units: r.units, total, rows: r.rows_written, status: r.status };
   });
   return Response.json({ progress }, { headers: { 'Cache-Control': 'no-store' } });

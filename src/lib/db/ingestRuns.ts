@@ -3,6 +3,8 @@ import { nanoid } from './nanoid';
 
 export type RunKind = 'backfill' | 'refresh' | 'manual';
 export type RunStatus = 'queued' | 'running' | 'done' | 'failed';
+/** Which families a run ingests: everything, or only the pair families (adding drill-down to an existing window). */
+export type RunScope = 'all' | 'pairs';
 
 export interface IngestRun {
   id: string;
@@ -10,6 +12,7 @@ export interface IngestRun {
   updated_at: string;
   site_id: string;
   kind: RunKind;
+  scope: RunScope;
   from_date: string;
   to_date: string;
   cursor: string;
@@ -21,13 +24,13 @@ export interface IngestRun {
   finished_at: string | null;
 }
 
-const COLS = 'id, created_at, updated_at, site_id, kind, from_date, to_date, cursor, status, rows_written, units, error, started_at, finished_at';
+const COLS = 'id, created_at, updated_at, site_id, kind, scope, from_date, to_date, cursor, status, rows_written, units, error, started_at, finished_at';
 
-export async function createRun(input: { site_id: string; kind: RunKind; from_date: string; to_date: string }): Promise<IngestRun> {
+export async function createRun(input: { site_id: string; kind: RunKind; from_date: string; to_date: string; scope?: RunScope }): Promise<IngestRun> {
   const id = nanoid();
   await db()
-    .prepare('INSERT INTO ingest_runs (id, site_id, kind, from_date, to_date) VALUES (?, ?, ?, ?, ?)')
-    .bind(id, input.site_id, input.kind, input.from_date, input.to_date)
+    .prepare('INSERT INTO ingest_runs (id, site_id, kind, scope, from_date, to_date) VALUES (?, ?, ?, ?, ?, ?)')
+    .bind(id, input.site_id, input.kind, input.scope ?? 'all', input.from_date, input.to_date)
     .run();
   const run = await getRun(id);
   if (!run) throw new Error('Run insert failed');

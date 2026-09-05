@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { createSign } from 'node:crypto';
 import { bqSql, bqTablesSql, datasetRef } from './bq-sql';
-import { REPORTS } from './reports';
+import { PAIRS, REPORTS } from './reports';
 
 const SAMPLE = { datasetRef: 'bigquery-public-data.ga4_obfuscated_sample_ecommerce', timezone: 'America/Los_Angeles', keyEvents: ['purchase'] };
 
@@ -19,6 +19,15 @@ describe('bq-sql (pure)', () => {
       } else {
         expect(sql).toBeNull();
       }
+    }
+  });
+
+  it('gives every pair family a query that reads the session join when it needs attribution', () => {
+    for (const p of PAIRS) {
+      const sql = bqSql(SAMPLE, p.key, '2021-01-30', '2021-01-31')!;
+      expect(sql, p.key).toBeTruthy();
+      if (p.key === 'sm_page' || p.key === 'sm_event' || p.key === 'channel_page') expect(sql).toMatch(/FROM evs/);
+      if (p.key.startsWith('sm_') && p.level === 'session') expect(sql).toContain("CONCAT(src, ' / ', med) AS key1");
     }
   });
 
@@ -79,7 +88,7 @@ async function run(access: string, project: string, sql: string) {
 }
 
 describe.skipIf(!KEY_FILE)('bq-sql (live, public sample dataset)', () => {
-  it('every family query runs and returns sane rows', { timeout: 240_000 }, async () => {
+  it('every family query runs and returns sane rows', { timeout: 900_000 }, async () => {
     const { access, project } = await token();
     for (const r of REPORTS.filter((x) => x.bq)) {
       const sql = bqSql(SAMPLE, r.key, '2021-01-30', '2021-01-31')!;
@@ -104,6 +113,12 @@ describe.skipIf(!KEY_FILE)('bq-sql (live, public sample dataset)', () => {
       }
       if (r.key === 'channel') {
         expect(rows.some((x) => ['Direct', 'Organic Search', 'Referral'].includes(String(x.key1)))).toBe(true);
+      }
+      if (r.key === 'sm_landing') {
+        expect(rows.some((x) => String(x.key1).includes(' / ') && String(x.key2).startsWith('/'))).toBe(true);
+      }
+      if (r.key === 'page_event') {
+        expect(rows.some((x) => x.key2 === 'page_view')).toBe(true);
       }
     }
     const tables = await run(access, project, bqTablesSql(SAMPLE.datasetRef));

@@ -25,7 +25,7 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
   const router = useRouter();
   const confirm = useConfirm();
   const [editing, setEditing] = useState<Row | null>(null);
-  const [form, setForm] = useState({ name: '', timezone: '', backfill_days: '90', bq_project_id: '', bq_dataset: '', bq_key_events: '' });
+  const [form, setForm] = useState({ name: '', timezone: '', backfill_days: '90', bq_project_id: '', bq_dataset: '', bq_key_events: '', drilldown: true });
   const [pending, startTransition] = useTransition();
 
   function openEdit(s: Row) {
@@ -37,6 +37,7 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
       bq_project_id: s.bq_project_id ?? '',
       bq_dataset: s.bq_dataset ?? '',
       bq_key_events: s.bq_key_events ?? '',
+      drilldown: s.drilldown === 1,
     });
   }
 
@@ -50,6 +51,7 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
         bq_project_id: form.bq_project_id.trim() || null,
         bq_dataset: form.bq_dataset.trim() || null,
         bq_key_events: form.bq_key_events.trim() || null,
+        drilldown: form.drilldown ? 1 : 0,
         primary_source: form.bq_dataset.trim() ? 'bigquery' : editing.ga_property_id ? 'ga4' : 'bigquery',
       });
       if (r.ok) {
@@ -95,6 +97,7 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
       cell: (s) => (s.span.from ? `${fmtDay(s.span.from)} → ${fmtDay(s.span.to!)}` : 'none yet'),
     },
     { key: 'rows', header: 'Rows', align: 'right', mono: true, cell: (s) => s.rows.toLocaleString(), sortValue: (s) => s.rows },
+    { key: 'drilldown', header: 'Drill-down', cell: (s) => <span className={s.drilldown === 1 ? 'pill ok' : 'pill'}>{s.drilldown === 1 ? 'on' : 'off'}</span> },
     {
       key: 'actions',
       header: '',
@@ -141,6 +144,15 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
           <Field label="Default backfill (days)">
             <input type="number" min={1} value={form.backfill_days} onChange={(e) => setForm({ ...form, backfill_days: e.target.value })} style={{ maxWidth: 140 }} />
           </Field>
+          <label className="flex items-start gap-3" style={{ cursor: 'pointer' }}>
+            <input type="checkbox" checked={form.drilldown} onChange={(e) => setForm({ ...form, drilldown: e.target.checked })} style={{ marginTop: 3, width: 'auto' }} />
+            <span>
+              <span style={{ fontWeight: 500 }}>Drill-down data</span>
+              <span className="mono-micro" style={{ display: 'block', marginTop: 2 }}>
+                Ingests the 17 two-dimension families that power detail pages. Turn off to keep a free-plan database small; existing rows stay.
+              </span>
+            </span>
+          </label>
           <p className="field-label" style={{ marginTop: 8 }}>
             BigQuery (optional)
           </p>

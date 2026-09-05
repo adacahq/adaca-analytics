@@ -1,6 +1,6 @@
 import { db } from '@/lib/db/client';
 import { lit, num } from '@/lib/db/sql';
-import { METRIC_COLUMNS, type ReportKey, type RollupRow } from './reports';
+import { METRIC_COLUMNS, PAIRS, type ReportKey, type RollupRow } from './reports';
 
 /** Rows per INSERT statement: ~100 bytes a row keeps a statement well under D1's 100 KB. */
 const ROWS_PER_STATEMENT = 400;
@@ -51,4 +51,14 @@ export async function rollupSpan(siteId: string): Promise<{ from: string | null;
     .first<{ from_date: string | null; to_date: string | null; n: number }>();
   const all = await db().prepare('SELECT COUNT(*) AS n FROM rollups WHERE site_id = ?').bind(siteId).first<{ n: number }>();
   return { from: r?.from_date ?? null, to: r?.to_date ?? null, rows: all?.n ?? 0 };
+}
+
+/** Coverage of the pair families (drill-down) for a site: the span and row count. */
+export async function pairSpan(siteId: string): Promise<{ from: string | null; to: string | null; rows: number }> {
+  const keys = PAIRS.map((p) => `'${p.key}'`).join(', ');
+  const r = await db()
+    .prepare(`SELECT MIN(date) AS from_date, MAX(date) AS to_date, COUNT(*) AS n FROM rollups WHERE site_id = ? AND report IN (${keys})`)
+    .bind(siteId)
+    .first<{ from_date: string | null; to_date: string | null; n: number }>();
+  return { from: r?.from_date ?? null, to: r?.to_date ?? null, rows: r?.n ?? 0 };
 }

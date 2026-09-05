@@ -16,6 +16,8 @@ export interface Site {
   bq_dataset: string | null;
   bq_key_events: string | null;
   backfill_days: number;
+  /** 1 = the pair families (drill-down) are ingested for this site. */
+  drilldown: number;
   last_ingested_date: string | null;
   position: number;
 }
@@ -30,10 +32,11 @@ export interface SiteInput {
   bq_dataset: string | null;
   bq_key_events?: string | null;
   backfill_days: number;
+  drilldown?: number;
 }
 
 const COLS =
-  'id, created_at, updated_at, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, bq_key_events, backfill_days, last_ingested_date, position';
+  'id, created_at, updated_at, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, bq_key_events, backfill_days, drilldown, last_ingested_date, position';
 
 export async function listSites(): Promise<Site[]> {
   const { results } = await db()
@@ -51,8 +54,8 @@ export async function createSite(input: SiteInput): Promise<Site> {
   const pos = await db().prepare('SELECT COALESCE(MAX(position), -1) + 1 AS p FROM sites').first<{ p: number }>();
   await db()
     .prepare(
-      `INSERT INTO sites (id, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, bq_key_events, backfill_days, position)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO sites (id, name, ga_property_id, timezone, currency, primary_source, bq_project_id, bq_dataset, bq_key_events, backfill_days, drilldown, position)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       id,
@@ -65,6 +68,7 @@ export async function createSite(input: SiteInput): Promise<Site> {
       input.bq_dataset,
       input.bq_key_events ?? null,
       input.backfill_days,
+      input.drilldown ?? 1,
       pos?.p ?? 0,
     )
     .run();

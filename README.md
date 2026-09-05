@@ -33,10 +33,11 @@ tables and notes — on a drag-and-drop grid.
 5. [How the numbers are made](#how-the-numbers-are-made)
 6. [BigQuery export](#bigquery-export)
 7. [Dashboards and widgets](#dashboards-and-widgets)
-8. [Local development](#local-development)
-9. [Deploying by hand](#deploying-by-hand)
-10. [Architecture](#architecture)
-11. [Limits and caveats](#limits-and-caveats)
+8. [Drill-down](#drill-down)
+9. [Local development](#local-development)
+10. [Deploying by hand](#deploying-by-hand)
+11. [Architecture](#architecture)
+12. [Limits and caveats](#limits-and-caveats)
 
 ---
 
@@ -157,6 +158,15 @@ per dimension value:
 | `event` | event name, is key event | Events, Key events |
 | `hour` | hour of day | Hour of day (weekday comes from `totals`) |
 
+Sites with **drill-down** on (the default) are also ingested into seventeen **pair
+families**, two dimensions per row, which power the detail pages and the "by"
+datasets in the builder: source / medium × landing page, page, country, device and
+event; channel × source / medium, landing page, page and country; campaign × landing
+page; referrer × page; page × country, device and event; landing page × country and
+device; and country × device. Source and medium travel as GA's combined
+`source / medium` string, so a source page filters `google / %` and a medium page
+`% / organic`.
+
 Each row stores eight metrics — users, new users, sessions, engaged sessions,
 pageviews, engagement seconds, key events, event count — and widgets sum them over
 the chosen period. Ratios (engagement rate, bounce rate, average engagement time,
@@ -219,6 +229,45 @@ convention GA uses. Derivations are documented at the top of
 Dashboards are shared by everyone who can open the deployment; there are no user
 accounts.
 
+## Drill-down
+
+Almost every value on a dashboard opens: a source, a page, a landing page, a channel,
+a campaign, a referrer, a country, a city, a device, an OS, an event… Ranked-list rows,
+table cells and the marks on bar and donut charts are links to `/detail/<kind>/<value>`,
+carrying the dashboard's period along.
+
+A detail page shows, for the chosen period and the period before:
+
+- the entity's **KPIs** with deltas (visits, visitors, engagement rate, average
+  engagement time, pageviews, key events, key-event rate; pageviews-led for pages and
+  referrers, events-led for events) and its **share of the site**;
+- a **trend** of the lead metric, with the previous period dashed behind it;
+- **breakdowns** — for a source: landing pages, pages, countries, devices, events,
+  channels, mediums and campaigns; for a page: sources, channels, referrers, countries,
+  devices, events on the page and titles; for a country: cities, pages, landing pages,
+  sources, channels and devices; and so on. Every breakdown row opens its own page, so
+  you can walk *google / organic → the landing page it sends people to → the countries
+  they come from* without leaving precomputed data.
+
+Everything on a detail page is **precomputed**. The breakdowns read the pair families
+described in *How the numbers are made*, and a page is one D1 round trip (about ten
+statements, tens of milliseconds); no Google call is made on the way. To keep storage
+bounded on large sites, each pair family keeps the top **1,500** combinations per day
+(by visits, or by events for event-level pairs) and folds the rest into one `(other)`
+row, so totals and shares still add up exactly. Sites the size of a company website
+never reach the cap.
+
+Existing sites: **Settings → Ingestion → Add drill-down data** ingests the pair
+families over the days the site already holds, without re-pulling the single-dimension
+rollups. New sites get them with their first backfill. The per-site **Drill-down**
+switch in **Settings → Sites** turns the pairs off for deployments that must stay
+inside the free D1 plan; existing rows are kept.
+
+The pair families are also builder datasets — *Pages by source*, *Sources by page*,
+*Landing pages by channel*, *Events by page*, *Countries by source*, *Devices by
+landing page*… — where a filter on the other dimension narrows them ("Pages by source"
++ *Source / medium is google / organic*).
+
 ## Local development
 
 ```
@@ -266,8 +315,9 @@ npm run deploy                             # build, apply migrations, deploy
   built and served by a Cloudflare Worker. `worker/index.ts` wraps vinext's fetch
   handler to add the cron handler and the optional Basic Auth gate.
 - **D1** holds `sites`, `dashboards` (widget layouts as JSON), `rollups` (the fact
-  table, composite key `site · report · date · key1 · key2`), `ingest_runs` and
-  `settings`. Migrations live in `migrations/`.
+  table, composite key `site · report · date · key1 · key2`, with a reverse index on
+  `key2` so both directions of a pair family are fast), `ingest_runs` and `settings`.
+  Migrations live in `migrations/`.
 - **KV** caches Google access tokens (55 min), realtime reports (30 s), exact-uniques
   lookups (10 min) and the property list.
 - **Ingestion** is bounded-unit pumping: a run is cut into units (one report family ×
@@ -275,17 +325,22 @@ npm run deploy                             # build, apply migrations, deploy
   15 minutes; the browser pumps `/api/ingest/advance` while a run is active.
 - **Query engine**: widget config + period → parameterised SQL over `rollups`, or a
   live GA realtime call; results are render-ready shapes (`kpi`, `timeseries`,
-  `ranked`, `table`).
+  `ranked`, `table`). Detail pages go through `src/lib/analytics/drill.ts`, which
+  batches every statement for a page into one D1 call; `entities.ts` is the registry
+  of entity kinds and their breakdowns.
 - **Design system**: the Canvas system shared with Adaca's other apps — `src/app/
   globals.css` is the single source of truth; see `docs/design-system.md`.
 
 ## Limits and caveats
 
 - **Free plan D1 is 500 MB** (10 GB on Workers Paid). A busy site writes roughly
-  5,000 rollup rows a day (~1 MB), so a year of one site fits either plan comfortably;
-  many large sites want the paid plan.
-- **GA Data API quota** — a backfill is about 15 requests per site per 31 days of
-  history; the hourly refresh is 15 requests. Well inside the standard quota.
+  5,000 single-dimension rollup rows a day (~1 MB); with drill-down on, the pair
+  families add up to 25,000 rows a day on a very large site (the 1,500-per-family cap)
+  and a few hundred on a small one. A year of a small site fits the free plan with
+  drill-down on; a large site wants the paid plan, or drill-down switched off for it.
+- **GA Data API quota** — a backfill is about 32 requests per site per 31 days of
+  history with drill-down on (15 without); the hourly refresh is the same per tick.
+  Well inside the standard quota.
 - **Realtime** needs a GA4 property; BigQuery-only sites have no realtime view.
 - **Screen resolutions** are not in the BigQuery export, so that dataset stays empty
   for BigQuery-fed sites.

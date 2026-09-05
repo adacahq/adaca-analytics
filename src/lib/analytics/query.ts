@@ -95,7 +95,7 @@ async function kpi(site: Site, ds: Dataset, config: WidgetConfig, range: DateRan
   return { kind: 'kpi', value, previous, spark };
 }
 
-function fillDays(points: Point[], from: string, to: string, bucket: Bucket): Point[] {
+export function fillDays(points: Point[], from: string, to: string, bucket: Bucket): Point[] {
   if (bucket !== 'day') return points;
   const byName = new Map(points.map((p) => [p.name, p]));
   return eachDay(from, to).map((d) => byName.get(d) ?? { name: d, value: 0 });

@@ -740,6 +740,8 @@ of `globals.css`). Every value sits on the scales above.
 | `.widget`, `.wbody`, `.wbody.center`, `.wnote` | A `.chart-card` that fills its grid cell; the scrolling body; a centred empty/error message; note prose. |
 | `.pick`, `.pick.on` | A `.card` that is a button — the builder's category / dataset / chart-type choices. |
 | `.sbtgl` | The drawer-only theme toggle, shown under 900px where the topbar's is hidden. |
+| `a.rr.link`, `.dlink` | A ranked row or table cell that opens an entity page: the cursor plus an `--accent` underline on hover say "this opens"; the share wash deepens on hover. Bar and donut marks get `cursor: pointer` and push the same URL. |
+| `.detail`, `.bgrid`, `.bcard`, `.wnote-hint` | The entity page: the stat strip draws its own hairlines (`box-shadow`) so a wrapped last row never shows a grey block; breakdown cards sit in an auto-fill 3-up grid that stacks under 640px; the hint links to Settings when the pair families are missing. `.view-title.mono` renders paths and hosts in the mono face at a smaller size. |
 
 Small screens (`max-width: 640px`): the topbar drops its mono labels and the
 theme toggle, and the dashboard grid stops being a grid — widgets stack

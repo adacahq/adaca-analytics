@@ -28,7 +28,7 @@ export default async function DashboardScreen({ slug, searchParams }: { slug: st
     from: r.from_date,
     to: r.to_date,
     units: r.units,
-    total: unitsFor(site, r.from_date, r.to_date),
+    total: unitsFor(site, r.from_date, r.to_date, r.scope),
     rows: r.rows_written,
     status: r.status,
   }));

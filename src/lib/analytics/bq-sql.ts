@@ -126,8 +126,18 @@ sess AS (
   FROM ev
   WHERE sid IS NOT NULL
   GROUP BY user_pseudo_id, sid
+),
+evs AS (
+  SELECT ev.*, s.src, s.med, s.camp, s.landing
+  FROM ev JOIN sess s USING (user_pseudo_id, sid)
 )`;
 }
+
+const PAGE_PATH = "COALESCE(REGEXP_EXTRACT(page_location, r'^https?://[^/]+(/[^?#]*)'), '/')";
+const REFERRER_HOST = "COALESCE(LOWER(REGEXP_EXTRACT(page_referrer, r'^https?://(?:www\\.)?([^/:?#]+)')), '(direct)')";
+const SOURCE_MEDIUM = "CONCAT(src, ' / ', med)";
+const COUNTRY = "COALESCE(country, '(not set)')";
+const DEVICE = "COALESCE(device_category, '(not set)')";
 
 function sessFamily(k1: string, k2: string): string {
   return `SELECT event_date AS date, ${k1} AS key1, ${k2} AS key2,${METRICS_FROM_SESS}
@@ -135,9 +145,10 @@ FROM sess
 GROUP BY 1, 2, 3`;
 }
 
-function evFamily(k1: string, k2: string, keyEvents: string[], where = ''): string {
+/** Event-level family; `from` is `evs` when a key needs the session's source/medium/campaign/landing. */
+function evFamily(k1: string, k2: string, keyEvents: string[], where = '', from: 'ev' | 'evs' = 'ev'): string {
   return `SELECT event_date AS date, ${k1} AS key1, ${k2} AS key2,${metricsFromEv(keyEvents)}
-FROM ev${where ? `\nWHERE ${where}` : ''}
+FROM ${from}${where ? `\nWHERE ${where}` : ''}
 GROUP BY 1, 2, 3`;
 }
 
@@ -178,26 +189,69 @@ export function bqSql(site: BqSite, family: ReportKey, from: string, to: string)
       body = sessFamily("IF(is_new, 'new', 'returning')", "''");
       break;
     case 'page':
-      body = evFamily(
-        "COALESCE(REGEXP_EXTRACT(page_location, r'^https?://[^/]+(/[^?#]*)'), '/')",
-        "COALESCE(page_title, '')",
-        site.keyEvents,
-        'page_location IS NOT NULL',
-      );
+      body = evFamily(PAGE_PATH, "COALESCE(page_title, '')", site.keyEvents, 'page_location IS NOT NULL');
       break;
     case 'referrer':
-      body = evFamily(
-        "COALESCE(LOWER(REGEXP_EXTRACT(page_referrer, r'^https?://(?:www\\.)?([^/:?#]+)')), '(direct)')",
-        "''",
-        site.keyEvents,
-        "event_name = 'page_view'",
-      );
+      body = evFamily(REFERRER_HOST, "''", site.keyEvents, "event_name = 'page_view'");
       break;
     case 'event':
       body = evFamily('event_name', `IF(event_name IN (${strList(site.keyEvents)}), '1', '0')`, site.keyEvents);
       break;
     case 'hour':
       body = evFamily(`FORMAT('%02d', EXTRACT(HOUR FROM TIMESTAMP_MICROS(event_timestamp) AT TIME ZONE '${tz}'))`, "''", site.keyEvents);
+      break;
+    // Pair families (drill-down). Session-level pairs read `sess`; event-level
+    // pairs whose key needs session attribution read `evs` (events joined to their session).
+    case 'sm_landing':
+      body = sessFamily(SOURCE_MEDIUM, 'landing');
+      break;
+    case 'sm_country':
+      body = sessFamily(SOURCE_MEDIUM, COUNTRY);
+      break;
+    case 'sm_device':
+      body = sessFamily(SOURCE_MEDIUM, DEVICE);
+      break;
+    case 'channel_sm':
+      body = sessFamily(CHANNEL_CASE, SOURCE_MEDIUM);
+      break;
+    case 'channel_landing':
+      body = sessFamily(CHANNEL_CASE, 'landing');
+      break;
+    case 'channel_country':
+      body = sessFamily(CHANNEL_CASE, COUNTRY);
+      break;
+    case 'campaign_landing':
+      body = sessFamily('camp', 'landing');
+      break;
+    case 'landing_country':
+      body = sessFamily('landing', COUNTRY);
+      break;
+    case 'landing_device':
+      body = sessFamily('landing', DEVICE);
+      break;
+    case 'country_device':
+      body = sessFamily(COUNTRY, DEVICE);
+      break;
+    case 'sm_page':
+      body = evFamily(SOURCE_MEDIUM, PAGE_PATH, site.keyEvents, 'page_location IS NOT NULL', 'evs');
+      break;
+    case 'sm_event':
+      body = evFamily(SOURCE_MEDIUM, 'event_name', site.keyEvents, '', 'evs');
+      break;
+    case 'channel_page':
+      body = evFamily(CHANNEL_CASE, PAGE_PATH, site.keyEvents, 'page_location IS NOT NULL', 'evs');
+      break;
+    case 'referrer_page':
+      body = evFamily(REFERRER_HOST, PAGE_PATH, site.keyEvents, "event_name = 'page_view'");
+      break;
+    case 'page_country':
+      body = evFamily(PAGE_PATH, COUNTRY, site.keyEvents, 'page_location IS NOT NULL');
+      break;
+    case 'page_device':
+      body = evFamily(PAGE_PATH, DEVICE, site.keyEvents, 'page_location IS NOT NULL');
+      break;
+    case 'page_event':
+      body = evFamily(PAGE_PATH, 'event_name', site.keyEvents, 'page_location IS NOT NULL');
       break;
     case 'screen':
       return null;

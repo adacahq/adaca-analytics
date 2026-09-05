@@ -5,11 +5,17 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Select from '@/components/ui/Select';
 import { useConfirm } from '@/components/ui/Confirm';
-import { backfillSite, refreshNow } from '@/lib/setup/actions';
+import { addDrilldownData, backfillSite, refreshNow } from '@/lib/setup/actions';
 import type { Site } from '@/lib/db/sites';
 
-/** Per-site controls on Settings → Ingestion: refresh the trailing days, or re-backfill. */
-export default function IngestControls({ site, busy }: { site: Site; busy: boolean }) {
+export interface PairCoverage {
+  rows: number;
+  from: string | null;
+  to: string | null;
+}
+
+/** Per-site controls on Settings → Ingestion: refresh the trailing days, add drill-down data, or re-backfill. */
+export default function IngestControls({ site, busy, pairs }: { site: Site; busy: boolean; pairs: PairCoverage }) {
   const router = useRouter();
   const confirm = useConfirm();
   const [days, setDays] = useState(String(site.backfill_days));
@@ -20,6 +26,24 @@ export default function IngestControls({ site, busy }: { site: Site; busy: boole
       const r = await refreshNow(site.id);
       if (r.ok) {
         toast.success('Refresh queued');
+        router.refresh();
+      } else toast.error(r.error);
+    });
+  }
+
+  async function drilldown() {
+    const ok = await confirm({
+      title: `Add drill-down data to ${site.name}?`,
+      body: pairs.rows
+        ? 'Re-ingest the 17 two-dimension families over the days this site already holds. Existing drill-down rows for those days are replaced; the single-dimension rollups are left alone.'
+        : 'Ingest the 17 two-dimension families (source × page, page × country, …) over the days this site already holds, so every source, page and country opens into a detail page. The single-dimension rollups are left alone.',
+      confirmLabel: 'Add drill-down data',
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      const r = await addDrilldownData(site.id);
+      if (r.ok) {
+        toast.success('Drill-down data queued');
         router.refresh();
       } else toast.error(r.error);
     });
@@ -45,6 +69,9 @@ export default function IngestControls({ site, busy }: { site: Site; busy: boole
     <div className="flex items-center gap-2 flex-wrap justify-end">
       <button type="button" className="btn btn-ghost btn-sm" disabled={pending || busy} onClick={refresh}>
         Refresh now
+      </button>
+      <button type="button" className="btn btn-ghost btn-sm" disabled={pending || busy} onClick={drilldown} title={pairs.rows ? `${pairs.rows.toLocaleString()} drill-down rows` : 'No drill-down data yet'}>
+        {pairs.rows ? 'Rebuild drill-down data' : 'Add drill-down data'}
       </button>
       <Select
         value={days}

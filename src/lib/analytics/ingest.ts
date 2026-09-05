@@ -9,7 +9,7 @@
  * budget runs out.
  */
 import { addDays, daysBetween, todayInZone } from './ranges';
-import { GA_METRICS, REPORTS, gaDateToIso, mergeRows, normaliseKeys, type ReportKey, type RollupRow } from './reports';
+import { GA_METRICS, PAIR_ROWS_PER_DAY, REPORTS, REPORT_BY_KEY, capPerDay, gaDateToIso, mergeRows, normaliseKeys, type ReportKey, type RollupRow } from './reports';
 import { bqSql, datasetRef } from './bq-sql';
 import { clearRollups, writeRollups } from './rollups';
 import { runReport } from '@/lib/google/ga4';
@@ -27,6 +27,7 @@ import {
   markStarted,
   updateRun,
   type IngestRun,
+  type RunScope,
 } from '@/lib/db/ingestRuns';
 
 const CHUNK_DAYS = 31;
@@ -50,14 +51,24 @@ function parseCursor(raw: string): Cursor {
   }
 }
 
-function familiesFor(site: Site): ReportKey[] {
-  return REPORTS.filter((r) => (site.primary_source === 'bigquery' ? r.bq : true)).map((r) => r.key);
+/** The families a run ingests: singles always, pairs only when the site has
+ *  drill-down on; a 'pairs' run adds drill-down to an already-backfilled window. */
+export function familiesFor(site: Site, scope: RunScope = 'all'): ReportKey[] {
+  return REPORTS.filter((r) => (site.primary_source === 'bigquery' ? r.bq : true))
+    .filter((r) => (r.pair ? site.drilldown === 1 || scope === 'pairs' : scope !== 'pairs'))
+    .map((r) => r.key);
 }
 
 /** Total units a run needs (families × chunks), for progress display. */
-export function unitsFor(site: Site, from: string, to: string): number {
+export function unitsFor(site: Site, from: string, to: string, scope: RunScope = 'all'): number {
   const chunks = Math.ceil(daysBetween(from, to) / CHUNK_DAYS);
-  return familiesFor(site).length * chunks;
+  return familiesFor(site, scope).length * chunks;
+}
+
+/** Pair families are capped per day; singles are stored whole. */
+function bounded(family: ReportKey, rows: RollupRow[]): RollupRow[] {
+  const def = REPORT_BY_KEY[family];
+  return def.pair ? capPerDay(rows, PAIR_ROWS_PER_DAY, def.level) : rows;
 }
 
 function chunkEnd(chunkStart: string, to: string): string {
@@ -104,7 +115,7 @@ async function fetchGaUnit(site: Site, family: ReportKey, from: string, to: stri
     const { key1, key2 } = normaliseKeys(family, dims);
     return { date: gaDateToIso(d), key1, key2, metrics: r.mets };
   });
-  return { rows: mergeRows(rows), more: offset + res.rows.length < res.rowCount };
+  return { rows: bounded(family, mergeRows(rows)), more: offset + res.rows.length < res.rowCount };
 }
 
 async function fetchBqUnit(site: Site, family: ReportKey, from: string, to: string): Promise<RollupRow[]> {
@@ -126,12 +137,12 @@ async function fetchBqUnit(site: Site, family: ReportKey, from: string, to: stri
       Number(r.event_count) || 0,
     ],
   }));
-  return mergeRows(rows);
+  return bounded(family, mergeRows(rows));
 }
 
 /** One unit of work. Returns whether the run is finished. */
 export async function advanceRun(run: IngestRun, site: Site): Promise<{ done: boolean; rows: number }> {
-  const families = familiesFor(site);
+  const families = familiesFor(site, run.scope);
   const cur = parseCursor(run.cursor);
   if (!cur.chunk) cur.chunk = run.from_date;
   if (cur.report >= families.length) {
@@ -233,11 +244,16 @@ export async function pump(opts: { siteId?: string; budgetMs?: number; maxUnits?
 }
 
 /** Queue a backfill covering `days` back from today (property time), or an explicit window. */
-export async function enqueueBackfill(site: Site, window: { days?: number; from?: string; to?: string }, kind: 'backfill' | 'manual' = 'backfill'): Promise<IngestRun> {
+export async function enqueueBackfill(
+  site: Site,
+  window: { days?: number; from?: string; to?: string },
+  kind: 'backfill' | 'manual' = 'backfill',
+  scope: RunScope = 'all',
+): Promise<IngestRun> {
   const today = todayInZone(site.timezone);
   const to = window.to ?? today;
   const from = window.from ?? addDays(to, -(window.days ?? site.backfill_days) + 1);
-  return createRun({ site_id: site.id, kind, from_date: from, to_date: to });
+  return createRun({ site_id: site.id, kind, from_date: from, to_date: to, scope });
 }
 
 /**

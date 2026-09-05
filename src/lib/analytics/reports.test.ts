@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GA_METRICS, METRIC_COLUMNS, REPORTS, gaDateToIso, mergeRows, normaliseKeys, referrerHost } from './reports';
+import { GA_METRICS, METRIC_COLUMNS, OTHER, PAIRS, REPORTS, SINGLES, capPerDay, gaDateToIso, mergeRows, normaliseKeys, referrerHost } from './reports';
 
 describe('report families', () => {
   it('keeps metric columns and GA metrics positionally aligned', () => {
@@ -37,6 +37,28 @@ describe('report families', () => {
     ]);
     expect(merged).toHaveLength(2);
     expect(merged[0].metrics).toEqual([3, 1, 3, 1, 4, 15, 1, 7]);
+  });
+
+  it('declares 17 pair families with two dimensions each, distinct from the 15 singles', () => {
+    expect(SINGLES).toHaveLength(15);
+    expect(PAIRS).toHaveLength(17);
+    for (const p of PAIRS) expect(p.gaDimensions, p.key).toHaveLength(2);
+    expect(new Set(REPORTS.map((r) => r.key)).size).toBe(REPORTS.length);
+    expect(normaliseKeys('referrer_page', ['https://www.google.com/', '/about'])).toEqual({ key1: 'google.com', key2: '/about' });
+  });
+
+  it('caps rows per day and folds the rest into (other)', () => {
+    const mk = (date: string, k: string, sessions: number, events: number) => ({ date, key1: k, key2: 'x', metrics: [1, 0, sessions, 0, 0, 0, 0, events] });
+    const rows = [mk('d1', 'a', 5, 1), mk('d1', 'b', 9, 2), mk('d1', 'c', 1, 30), mk('d1', 'd', 2, 4), mk('d2', 'a', 3, 3)];
+    const session = capPerDay(rows, 2, 'session');
+    const d1 = session.filter((r) => r.date === 'd1');
+    expect(d1.map((r) => r.key1)).toEqual(['b', 'a', OTHER]);
+    expect(d1[2].metrics[2]).toBe(3); // c + d sessions
+    expect(d1[2].metrics[7]).toBe(34); // c + d events
+    expect(session.filter((r) => r.date === 'd2')).toHaveLength(1); // under the cap: untouched
+    const event = capPerDay(rows, 1, 'event');
+    expect(event.filter((r) => r.date === 'd1')[0].key1).toBe('c');
+    expect(capPerDay(rows, 10, 'session')).toHaveLength(5);
   });
 
   it('converts GA dates', () => {

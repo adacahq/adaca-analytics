@@ -1,9 +1,10 @@
 import SubHead from '@/components/ui/SubHead';
 import IngestBanner, { type RunProgress } from '@/components/ingest/IngestBanner';
-import IngestControls from '@/components/settings/IngestControls';
+import IngestControls, { type PairCoverage } from '@/components/settings/IngestControls';
 import { listSites } from '@/lib/db/sites';
 import { listActiveRuns, listRuns } from '@/lib/db/ingestRuns';
 import { unitsFor } from '@/lib/analytics/ingest';
+import { pairSpan } from '@/lib/analytics/rollups';
 import { fmtDay, fmtInstant, fmtInt } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -22,12 +23,14 @@ export default async function IngestionPage() {
       from: r.from_date,
       to: r.to_date,
       units: r.units,
-      total: site ? unitsFor(site, r.from_date, r.to_date) : 0,
+      total: site ? unitsFor(site, r.from_date, r.to_date, r.scope) : 0,
       rows: r.rows_written,
       status: r.status,
     };
   });
   const busySites = new Set(active.map((r) => r.site_id));
+  const pairs = new Map<string, PairCoverage>();
+  for (const s of sites) pairs.set(s.id, await pairSpan(s.id));
 
   return (
     <div>
@@ -48,9 +51,15 @@ export default async function IngestionPage() {
               <div style={{ fontWeight: 500 }}>{s.name}</div>
               <div className="mono-micro" style={{ marginTop: 4 }}>
                 {s.primary_source === 'bigquery' ? 'BigQuery' : 'GA4 API'} · {s.last_ingested_date ? `ingested to ${fmtDay(s.last_ingested_date)}` : 'nothing ingested yet'}
+                {' · '}
+                {(() => {
+                  const p = pairs.get(s.id);
+                  if (p?.from && p.to) return `drill-down ${fmtDay(p.from)} to ${fmtDay(p.to)}`;
+                  return s.drilldown === 1 ? 'no drill-down data yet' : 'drill-down off';
+                })()}
               </div>
             </div>
-            <IngestControls site={s} busy={busySites.has(s.id)} />
+            <IngestControls site={s} busy={busySites.has(s.id)} pairs={pairs.get(s.id) ?? { rows: 0, from: null, to: null }} />
           </div>
         ))}
         {sites.length === 0 ? (
@@ -70,6 +79,7 @@ export default async function IngestionPage() {
             <tr>
               <th>Site</th>
               <th>Kind</th>
+              <th>Scope</th>
               <th>Window</th>
               <th>Status</th>
               <th style={{ textAlign: 'right' }}>Units</th>
@@ -84,6 +94,7 @@ export default async function IngestionPage() {
               <tr key={r.id}>
                 <td>{byId.get(r.site_id)?.name ?? r.site_id}</td>
                 <td className="mono">{r.kind}</td>
+                <td className="mono">{r.scope === 'pairs' ? 'drill-down' : 'all'}</td>
                 <td className="mono">
                   {fmtDay(r.from_date)} → {fmtDay(r.to_date)}
                 </td>
@@ -103,7 +114,7 @@ export default async function IngestionPage() {
             ))}
             {runs.length === 0 ? (
               <tr>
-                <td colSpan={9} style={{ padding: '24px 14px', color: 'var(--muted)' }}>
+                <td colSpan={10} style={{ padding: '24px 14px', color: 'var(--muted)' }}>
                   No runs yet.
                 </td>
               </tr>

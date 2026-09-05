@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Modal from '@/components/ui/Modal';
 import Select from '@/components/ui/Select';
-import { CATEGORIES, DATASET_BY_KEY, datasetsIn, type CategoryKey, type Dataset } from '@/lib/analytics/catalog';
+import { CATEGORIES, DATASET_BY_KEY, datasetsIn, type CategoryKey, type Dataset, keyLabelsFor } from '@/lib/analytics/catalog';
 import { METRIC_BY_KEY, isMetricKey, type MetricKey } from '@/lib/analytics/metrics';
 import { REPORT_BY_KEY } from '@/lib/analytics/reports';
 import { WIDGETS, WIDGET_BY_TYPE } from '@/lib/dashboard/widgets';
@@ -134,7 +134,7 @@ export default function WidgetBuilder({
 
   const ds = dataset ? DATASET_BY_KEY[dataset] : undefined;
   const report = ds && !ds.live ? REPORT_BY_KEY[ds.report as keyof typeof REPORT_BY_KEY] : undefined;
-  const keyLabels = report?.keyLabels ?? [];
+  const keyLabels = ds ? keyLabelsFor(ds, report?.keyLabels ?? []) : [];
 
   function patch(p: Partial<WidgetConfig>) {
     setConfig((c) => ({ ...c, ...p }));

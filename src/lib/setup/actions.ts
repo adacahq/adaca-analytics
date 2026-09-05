@@ -6,6 +6,7 @@ import { getProperty } from '@/lib/google/admin';
 import { bigQuery } from '@/lib/google/bigquery';
 import { bqTablesSql } from '@/lib/analytics/bq-sql';
 import { enqueueBackfill } from '@/lib/analytics/ingest';
+import { rollupSpan } from '@/lib/analytics/rollups';
 import { createRun, cancelActiveRuns } from '@/lib/db/ingestRuns';
 import { createSite, deleteSite, getSite, updateSite, type SiteInput } from '@/lib/db/sites';
 import { addDays, todayInZone } from '@/lib/analytics/ranges';
@@ -146,6 +147,27 @@ export async function backfillSite(siteId: string, window: { days?: number; from
     await cancelActiveRuns(site.id);
     await enqueueBackfill(site, window, 'backfill');
     revalidatePath('/settings/ingestion');
+    return { ok: true, data: undefined };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/**
+ * Settings → Ingestion: add drill-down data (the pair families) over the
+ * window a site already holds, without re-pulling the single-dimension rollups.
+ * Also turns the site's drill-down switch on so refreshes keep the pairs current.
+ */
+export async function addDrilldownData(siteId: string): Promise<ActionResult> {
+  try {
+    const site = await getSite(siteId);
+    if (!site) return { ok: false, error: 'Site not found' };
+    const span = await rollupSpan(site.id);
+    if (!span.from || !span.to) return { ok: false, error: 'Backfill the site first; drill-down data covers the days already ingested.' };
+    if (site.drilldown !== 1) await updateSite(site.id, { drilldown: 1 });
+    await enqueueBackfill(site, { from: span.from, to: span.to }, 'manual', 'pairs');
+    revalidatePath('/settings/ingestion');
+    revalidatePath('/', 'layout');
     return { ok: true, data: undefined };
   } catch (e) {
     return fail(e);
