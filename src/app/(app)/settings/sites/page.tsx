@@ -24,7 +24,7 @@ export default async function SitesPage() {
           </Link>
         }
       >
-        Each site is one GA4 property, or one BigQuery export. {sites.length === 1 ? '1 site' : `${sites.length} sites`} on record.
+        Each site is one GA4 property or one BigQuery export, with its own timezone and history. {sites.length === 1 ? '1 site' : `${sites.length} sites`} on record.
       </SubHead>
       <div className="mt-6">
         <SitesTable sites={rows} />

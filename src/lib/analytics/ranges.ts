@@ -143,7 +143,7 @@ export function resolveRange(params: RangeParams, today: string): DateRange {
   if (isIsoDay(params.from) && isIsoDay(params.to)) {
     const from = params.from <= params.to ? params.from : params.to;
     const to = params.from <= params.to ? params.to : params.from;
-    return { key: 'custom', from, to, compare, label: `${from} → ${to}` };
+    return { key: 'custom', from, to, compare, label: `${from} to ${to}` };
   }
   const key = (PRESETS.find((p) => p.key === params.range)?.key ?? DEFAULT_RANGE) as Exclude<RangeKey, 'custom'>;
   const { from, to } = presetBounds(key, today);

@@ -105,7 +105,7 @@ export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashb
       <Modal
         open={renaming}
         onClose={() => setRenaming(false)}
-        title="Rename dashboard"
+        title="Rename Dashboard"
         maxWidth={440}
         footer={
           <>

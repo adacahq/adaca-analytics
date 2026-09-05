@@ -28,7 +28,7 @@ export default function IngestControls({ site, busy }: { site: Site; busy: boole
   async function backfill() {
     const ok = await confirm({
       title: `Backfill ${site.name}?`,
-      body: `Re-ingest the last ${days} days. Existing rows for those days are replaced; anything queued for this site is cancelled.`,
+      body: `Re-ingest the last ${days} days. Existing rows for those days are replaced, and anything queued for this site is cancelled.`,
       confirmLabel: 'Start backfill',
     });
     if (!ok) return;

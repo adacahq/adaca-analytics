@@ -21,9 +21,9 @@ export default async function SetupPage() {
 
   return (
     <div>
-      <h1 className="view-title rv">{sites.length ? 'Add a site' : 'Connect a property'}</h1>
+      <h1 className="view-title rv">{sites.length ? 'Add a Site' : 'Connect a Property'}</h1>
       <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>
-        Point Adaca Analytics at a Google Analytics 4 property. Daily rollups are pulled into this deployment's own database; realtime stays live.
+        Connect a Google Analytics 4 property or a BigQuery export. Daily rollups are stored in this deployment's own database, and realtime stays live on Google Analytics.
       </p>
       <div className="rv" style={{ '--i': 2 } as CSSProperties}>
         <SetupWizard credentials={credentials} properties={properties} propertiesError={propertiesError} hasSites={sites.length > 0} />

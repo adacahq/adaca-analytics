@@ -6,7 +6,7 @@ import VizTip from '@/components/ui/VizTip';
 
 export const metadata: Metadata = {
   title: 'Adaca Analytics',
-  description: 'Google Analytics 4 and BigQuery dashboards, self-hosted on Cloudflare Workers.',
+  description: 'Self-hosted Google Analytics 4 and BigQuery dashboards on Cloudflare Workers.',
   icons: {
     icon: [{ url: '/favicon.png', type: 'image/png' }],
     apple: [{ url: '/apple-touch-icon.png' }],

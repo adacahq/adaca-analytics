@@ -41,7 +41,7 @@ export default function DataTable<T>({
   columns,
   rows,
   getRowKey,
-  empty = 'Nothing here.',
+  empty = 'Nothing to show.',
   className = '',
 }: {
   columns: Column<T>[];

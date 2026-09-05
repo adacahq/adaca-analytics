@@ -88,7 +88,7 @@ function KpiBody({ value, previous, spark, metric, live }: { value: number; prev
             <small>vs prev</small>
           </span>
         ) : previous !== null ? (
-          <span className="delta">— vs prev</span>
+          <span className="delta">– vs prev</span>
         ) : null}
       </div>
       <Sparkline values={spark} />
@@ -223,7 +223,7 @@ function TableBody({ columns, rows }: { columns: { key: string; label: string; m
 
 /* ── Note ────────────────────────────────────────────────────────── */
 function NoteBody({ markdown }: { markdown: string }) {
-  if (!markdown.trim()) return <Centered>Empty note — edit to add text.</Centered>;
+  if (!markdown.trim()) return <Centered>This note is empty. Edit the widget to add text.</Centered>;
   return (
     <div className="docs-prose wnote" style={{ fontSize: 13.5 }}>
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>

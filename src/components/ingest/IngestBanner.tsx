@@ -77,7 +77,7 @@ export default function IngestBanner({ siteId, initial, all = false }: { siteId?
       <div className="flex items-center gap-3 flex-wrap">
         <span className="spinner" aria-hidden />
         <span style={{ color: 'var(--fg)' }}>
-          {label} {fmtDay(r.from)} → {fmtDay(r.to)}
+          {label} {fmtDay(r.from)} to {fmtDay(r.to)}
         </span>
         <span className="mono-micro">
           {r.units}/{r.total || '?'} units · {fmtInt(r.rows)} rows

@@ -78,7 +78,7 @@ export default function DateRange({ today, pathname }: { today: string; pathname
           </div>
           <label className="check" style={{ padding: '4px 4px 0' }}>
             <input type="checkbox" checked={range.compare} onChange={(e) => go({ ...range, compare: e.target.checked })} />
-            Compare to previous period
+            Compare with the previous period
           </label>
         </div>
       ) : null}

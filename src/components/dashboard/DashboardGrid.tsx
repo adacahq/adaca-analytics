@@ -164,9 +164,9 @@ export default function DashboardGrid({
           <div className="empty">
             <span className="zone-label">Dashboard</span>
             <h3 className="mt-3.5" style={{ fontSize: 18, fontWeight: 500, letterSpacing: '-0.01em', color: 'var(--fg)' }}>
-              This dashboard is empty
+              This Dashboard Is Empty
             </h3>
-            <p>Add numbers, charts, lists and tables from your analytics data — pick the data type, the specific data, then how to chart it.</p>
+            <p>Add numbers, charts, lists and tables from your analytics data. Pick the data type, then the specific data, then how to chart it.</p>
             <button type="button" className="btn btn-primary btn-sm mt-5" onClick={openAdd}>
               + Add your first widget
             </button>

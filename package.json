@@ -2,7 +2,7 @@
   "name": "adaca-analytics",
   "version": "0.1.0",
   "private": true,
-  "description": "Open-source Google Analytics 4 / BigQuery dashboards on Cloudflare Workers — daily rollups in D1, customisable widget dashboards.",
+  "description": "Self-hosted Google Analytics 4 and BigQuery dashboards on Cloudflare Workers: daily rollups in D1, customisable widget dashboards, open source.",
   "license": "MIT",
   "type": "module",
   "packageManager": "npm@10.9.2",

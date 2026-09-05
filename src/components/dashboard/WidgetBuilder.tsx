@@ -198,7 +198,7 @@ export default function WidgetBuilder({
     <Modal
       open={open}
       onClose={onClose}
-      title={editing ? 'Edit widget' : 'Add widget'}
+      title={editing ? 'Edit Widget' : 'Add Widget'}
       maxWidth={720}
       footer={
         <div className="flex items-center gap-3" style={{ width: '100%' }}>
@@ -231,13 +231,13 @@ export default function WidgetBuilder({
               <Pick
                 key={c.key}
                 title={c.label}
-                description={c.key === 'realtime' && !hasRealtime ? 'Needs a GA4 property — this site reads a BigQuery export only.' : c.description}
+                description={c.key === 'realtime' && !hasRealtime ? 'Needs a GA4 property. This site reads a BigQuery export only.' : c.description}
                 on={category === c.key}
                 disabled={c.key === 'realtime' && !hasRealtime}
                 onClick={() => pickCategory(c.key)}
               />
             ))}
-            <Pick title="Note" description="Free text in Markdown — a heading, a caveat, a link. No data." on={type === 'note'} onClick={pickNote} />
+            <Pick title="Note" description="Free text in Markdown: a heading, a caveat, a link. No data." on={type === 'note'} onClick={pickNote} />
           </PickGrid>
         </>
       )}
@@ -275,7 +275,7 @@ export default function WidgetBuilder({
             {ds ? <span className="pill doing">{ds.label}</span> : null}
             <span className="pill">{chartMeta?.title}</span>
           </div>
-          <FieldRow label="Title" hint="Optional — shown in the card header.">
+          <FieldRow label="Title" hint="Optional. Shown in the card header.">
             <input placeholder={ds ? `${ds.label}` : chartMeta?.title} value={title} onChange={(e) => setTitle(e.target.value)} />
           </FieldRow>
 
