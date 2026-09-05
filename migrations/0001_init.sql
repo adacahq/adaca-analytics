@@ -85,7 +85,7 @@ CREATE TABLE ingest_runs (
   created_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   updated_at   TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
   site_id      TEXT NOT NULL REFERENCES sites(id) ON DELETE CASCADE,
-  kind         TEXT NOT NULL CHECK (kind IN ('backfill', 'daily', 'manual')),
+  kind         TEXT NOT NULL CHECK (kind IN ('backfill', 'refresh', 'manual')),
   from_date    TEXT NOT NULL,
   to_date      TEXT NOT NULL,
   -- JSON progress cursor: { "report": <index>, "chunk": "YYYY-MM-DD", "offset": <rows> }

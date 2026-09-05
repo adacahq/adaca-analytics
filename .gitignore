@@ -25,3 +25,6 @@ npm-debug.log*
 CLAUDE.md
 AGENTS.md
 .claude/
+
+# vinext generated route types
+.next/

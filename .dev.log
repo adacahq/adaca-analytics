@@ -1,0 +1,200 @@
+
+> adaca-analytics@0.1.0 dev
+> vinext dev --port 3200
+
+
+  vinext dev  (Vite 8.2.2)
+
+(node:99809) ExperimentalWarning: glob is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+Default inspector port 9229 not available, using 9231 instead
+
+Using secrets defined in .dev.vars
+  ➜  Local:   http://localhost:3200/
+  ➜  Debug:   http://localhost:3200/__debug
+ GET /api/health 200 in 158ms
+ GET / 307 in 919ms
+ GET /setup 200 in 41ms (compile: 1788613622.5s, render: 25ms)
+ GET /settings/sites 200 in 56ms (compile: 1788613622.5s, render: 30ms)
+11:07:07 pm [vite] (ssr) dependency optimized: classnames
+ GET /settings/about 200 in 40ms (compile: 1788613622.5s, render: 24ms)
+ GET /d/nope 307 in 37ms
+ GET /setup 200 in 43ms (compile: 1788613622.5s, render: 29ms)
+11:07:24 pm [vite] (client) dependencies optimized: classnames, next/link, sonner
+11:07:24 pm [vite] (client) optimized dependencies changed. reloading
+11:07:24 pm [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+11:07:24 pm [vite] (client) [console.error] Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://react.dev/link/invalid-hook-call for tips about how to debug and fix this problem.
+11:07:24 pm [vite] (client) [console.error] TypeError: Cannot read properties of null (reading 'useContext')
+    at exports.useContext (http://localhost:3200/node_modules/.vite/deps/react.js?v=6f93d851:706:22)
+    at Link (http://localhost:3200/node_modules/.vite/deps/next_link.js?v=af286e7b:671:50)
+    at Object.react_stack_bottom_frame (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:12866:12)
+    at renderWithHooks (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:4213:19)
+    at updateForwardRef (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:5396:16)
+    at beginWork (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:6204:21)
+    at runWithFiberInDEV (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:851:66)
+    at performUnitOfWork (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:8429:92)
+    at workLoopSync (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:8325:37)
+    at renderRootSync (http://localhost:3200/node_modules/.vite/deps/react-dom_client.js?v=b334f87a:8309:6)
+11:07:24 pm [vite] (client) [console.error] The above error occurred in a React component:
+
+    at Link (http://localhost:3200/node_modules/.vite/deps/next_link.js?v=af286e7b:670:57)
+    at aside (<anonymous>)
+    at AppShell (http://localhost:3200/src/layouts/App/index.tsx:22:36)
+    at AppComponentDependencyBarrier [Server] (<anonymous>)
+    at AwaitAppRenderDependencies [Server] (<anonymous>)
+    at BfcacheSlotBoundary (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:191:32)
+    at Slot (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:274:17)
+    at LayoutSegmentProvider (http://localhost:3200/node_modules/vinext/dist/shims/layout-segment-context.js?v=b334f87a:41:34)
+    at NotFoundBoundaryInner (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:185:3)
+    at NotFoundBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:221:29)
+    at Children (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:305:17)
+    at body (<anonymous>)
+    at html (<anonymous>)
+    at RootLayout [Server] (<anonymous>)
+    at AppComponentDependencyBarrier [Server] (<anonymous>)
+    at AwaitAppRenderDependencies [Server] (<anonymous>)
+    at BfcacheSlotBoundary (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:191:32)
+    at Slot (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:274:17)
+    at LayoutSegmentProvider (http://localhost:3200/node_modules/vinext/dist/shims/layout-segment-context.js?v=b334f87a:41:34)
+    at ErrorBoundaryInner (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:107:3)
+    at ErrorBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:159:26)
+    at ErrorBoundaryInner (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:107:3)
+    at GlobalErrorBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:167:32)
+    at AwaitAppRenderDependencies [Server] (<anonymous>)
+    at BfcacheSlotBoundary (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:191:32)
+    at Slot (http://localhost:3200/node_modules/vinext/dist/shims/slot.js?v=b334f87a:274:17)
+    at NavigationCommitSignal (http://localhost:3200/node_modules/vinext/dist/server/app-browser-navigation-controller.js?v=b334f87a:237:36)
+    at RedirectErrorBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:63:3)
+    at RedirectBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:97:29)
+    at AppRouterRedirectBridge (http://localhost:3200/node_modules/vinext/dist/server/app-browser-entry.js?v=b334f87a:594:36)
+    at DevRecoveryBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:313:3)
+    at AppRouterScrollCommitProvider (http://localhost:3200/node_modules/vinext/dist/shims/app-router-scroll.js?v=b334f87a:129:42)
+    at ErrorBoundaryInner (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:107:3)
+    at GlobalErrorBoundary (http://localhost:3200/node_modules/vinext/dist/shims/error-boundary.js?v=b334f87a:167:32)
+    at BrowserRoot (http://localhost:3200/node_modules/vinext/dist/server/app-browser-entry.js?v=b334f87a:624:24)
+ GET /setup 200 in 46ms (compile: 1788613622.5s, render: 30ms)
+11:07:24 pm [vite] (client) [console.error] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <NotFoundBoundaryInner pathname="/setup" resetKey={"[\"setup\"]"} fallback={<div>}>
+      <AppRouterScrollTarget>
+        <AppRouterScrollTargetInner commitId={0}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary>
+              <LayoutSegmentProvider providerId="page:/setup" segmentMap={{children:[...]}}>
+                <Slot id="page:/setup">
+                  <BfcacheSlotBoundary id="page:/setup" content={<Context>}>
+                    <Suspense fallback={<div>}>
+                      <PageInvoker>
+                        <AwaitAppRenderDependencies>
+                          <div>
+                            <h1
++                             className="view-title rv"
+-                             className="view-title rv in"
+                            >
++                             Connect a property
+                            <p
++                             className="lede rv"
+-                             className="lede rv in"
+                              style={{--i:1}}
+                            >
++                             Point Adaca Analytics at a Google Analytics 4 property. The setup wizard lands in the nex...
+                            <div
++                             className="wsteps rv"
+-                             className="wsteps rv in"
+                              style={{--i:2}}
+                            >
+                            ...
+
+11:07:59 pm [vite] (rsc) hmr update /src/app/globals.css
+11:07:59 pm [vite] (client) hmr update /src/app/globals.css?direct
+11:07:59 pm [vite] (rsc) hmr update /@id/__x00__virtual:vinext-rsc-entry, /src/app/globals.css
+11:07:59 pm [vite] (ssr) page reload src/components/ui/CanvasMotion.tsx
+11:07:59 pm [vite] (client) hmr update /src/app/globals.css?direct, /src/components/ui/CanvasMotion.tsx
+[vite] program reload
+[vite] hot updated:  virtual:vinext-rsc-entry
+ GET /setup?_rsc 200 in 44ms (compile: 1788613622.5s, render: 0ms)
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+ GET /setup 200 in 99ms (compile: 1788613622.5s, render: 88ms)
+11:08:08 pm [vite] (client) [console.error] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <NotFoundBoundaryInner pathname="/setup" resetKey={"[\"setup\"]"} fallback={<div>}>
+      <AppRouterScrollTarget>
+        <AppRouterScrollTargetInner commitId={0}>
+          <RedirectBoundary>
+            <RedirectErrorBoundary>
+              <LayoutSegmentProvider providerId="page:/setup" segmentMap={{children:[...]}}>
+                <Slot id="page:/setup">
+                  <BfcacheSlotBoundary id="page:/setup" content={<Context>}>
+                    <Suspense fallback={<div>}>
+                      <PageInvoker>
+                        <AwaitAppRenderDependencies>
+                          <div>
+                            <h1
+                              className="view-title rv"
+-                             data-in=""
+                            >
++                             Connect a property
+                            <p
+                              className="lede rv"
+                              style={{--i:1}}
+-                             data-in=""
+                            >
++                             Point Adaca Analytics at a Google Analytics 4 property. The setup wizard lands in the nex...
+                            <div
+                              className="wsteps rv"
+                              style={{--i:2}}
+-                             data-in=""
+                            >
+                            ...
+
+11:08:57 pm [vite] (rsc) hmr update /@id/__x00__virtual:vinext-rsc-entry, /src/app/globals.css
+11:08:57 pm [vite] (ssr) page reload src/components/ui/CanvasMotion.tsx
+11:08:57 pm [vite] (client) hmr update /src/app/globals.css?direct, /src/components/ui/CanvasMotion.tsx
+[vite] program reload
+[vite] hot updated:  virtual:vinext-rsc-entry
+11:09:00 pm [vite] (rsc) hmr update /@id/__x00__virtual:vinext-rsc-entry, /src/app/globals.css
+11:09:00 pm [vite] (ssr) page reload src/components/ui/CanvasMotion.tsx
+11:09:00 pm [vite] (client) hmr update /src/app/globals.css?direct, /src/components/ui/CanvasMotion.tsx
+[vite] hot updated:  virtual:vinext-rsc-entry
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+Detected multiple renderers concurrently rendering the same context provider. This is currently unsupported.
+ GET /settings/about 200 in 127ms (compile: 1788613622.5s, render: 91ms)
+11:11:05 pm [vite] (rsc) hmr update /src/app/globals.css
+11:11:05 pm [vite] (client) hmr update /src/app/globals.css?direct
