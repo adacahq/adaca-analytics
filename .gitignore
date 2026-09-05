@@ -1,0 +1,27 @@
+# dependencies
+node_modules
+
+# build output
+/dist/
+.vinext/
+.wrangler/
+*.tsbuildinfo
+next-env.d.ts
+
+# local secrets & env — keep the committed example, ignore the rest
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+.env
+.env.*
+!.env.example
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+
+# AI assistant / agent instructions (local, not part of the shipped repo)
+CLAUDE.md
+AGENTS.md
+.claude/

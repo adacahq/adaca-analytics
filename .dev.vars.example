@@ -1,0 +1,13 @@
+# ── Google ───────────────────────────────────────────────────────────────
+# The whole service-account JSON key on one line (it is valid JSON; keep the
+# quotes). The account needs Viewer on each GA4 property you add, and
+# "BigQuery Job User" + "BigQuery Data Viewer" if a site reads the export.
+# In production this is a Worker secret:  wrangler secret put GOOGLE_SERVICE_ACCOUNT_JSON
+GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"...","private_key":"-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n","client_email":"...@....iam.gserviceaccount.com","token_uri":"https://oauth2.googleapis.com/token"}
+
+# ── Protection (optional) ────────────────────────────────────────────────
+# There is no sign-in. Either put Cloudflare Access in front of the worker
+# (recommended — see README) or set BOTH of these to enable HTTP Basic Auth.
+# Leave both empty to disable the gate.
+BASIC_AUTH_USERNAME=
+BASIC_AUTH_PASSWORD=

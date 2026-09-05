@@ -1,0 +1,32 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "adaca-analytics",
+  "compatibility_date": "2026-09-05",
+  "compatibility_flags": ["nodejs_compat"],
+  // Custom entry: delegates to vinext's fetch handler, adds the ingest cron
+  // (`scheduled`) and the optional Basic Auth gate. See worker/index.ts.
+  "main": "./worker/index.ts",
+  "assets": {
+    "directory": "dist/client",
+    "not_found_handling": "none",
+    "binding": "ASSETS"
+  },
+  "cache": { "enabled": true },
+  // The Deploy to Cloudflare button provisions these and rewrites the ids.
+  // Locally, the placeholder ids are fine: the Vite plugin runs miniflare
+  // with local SQLite / in-memory KV keyed on the id string.
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "adaca-analytics",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "migrations"
+    }
+  ],
+  "kv_namespaces": [{ "binding": "CACHE", "id": "adaca-analytics-cache" }],
+  // Ingestion pump: every tick advances at most one bounded unit of work per
+  // site (a report family × ≤31-day chunk) and enqueues the once-a-day
+  // rollup refresh. Cheap when idle: one D1 read.
+  "triggers": { "crons": ["*/15 * * * *"] },
+  "observability": { "enabled": true }
+}

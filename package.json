@@ -1,0 +1,72 @@
+{
+  "name": "adaca-analytics",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Open-source Google Analytics 4 / BigQuery dashboards on Cloudflare Workers — daily rollups in D1, customisable widget dashboards.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "npm@10.9.2",
+  "scripts": {
+    "dev": "vinext dev",
+    "build": "vinext build",
+    "start": "wrangler dev --config dist/server/wrangler.json",
+    "predeploy": "npm run build",
+    "deploy": "wrangler d1 migrations apply DB --remote && wrangler deploy --config dist/server/wrangler.json",
+    "db:migrate": "wrangler d1 migrations apply DB --local",
+    "types": "wrangler types",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src worker",
+    "test": "vitest run --passWithNoTests"
+  },
+  "cloudflare": {
+    "bindings": {
+      "DB": {
+        "description": "D1 database holding sites, dashboards and the daily analytics rollups."
+      },
+      "CACHE": {
+        "description": "KV namespace caching Google access tokens and live realtime reports."
+      },
+      "GOOGLE_SERVICE_ACCOUNT_JSON": {
+        "description": "Contents of a Google Cloud service-account JSON key with Viewer access on your GA4 property (and BigQuery read roles if you use the export)."
+      },
+      "BASIC_AUTH_USERNAME": {
+        "description": "Optional. Set together with BASIC_AUTH_PASSWORD to put the app behind HTTP Basic Auth. Leave empty to protect it with Cloudflare Access instead."
+      },
+      "BASIC_AUTH_PASSWORD": {
+        "description": "Optional. Password for the Basic Auth gate."
+      }
+    }
+  },
+  "dependencies": {
+    "@vinext/cloudflare": "^1.0.0-beta.7",
+    "classnames": "^2.5.1",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "react-grid-layout": "^2.2.4",
+    "react-markdown": "^10.1.0",
+    "react-server-dom-webpack": "^19.2.8",
+    "recharts": "^3.10.1",
+    "remark-gfm": "^4.0.1",
+    "sonner": "^2.0.7",
+    "vinext": "^1.0.0-beta.9",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@cloudflare/vite-plugin": "^1.54.4",
+    "@eslint/js": "^9.39.0",
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "@vitejs/plugin-react": "^6.1.1",
+    "@vitejs/plugin-rsc": "^0.5.34",
+    "eslint": "^9.39.0",
+    "eslint-plugin-react-hooks": "^7.0.0",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.0",
+    "typescript-eslint": "^8.46.0",
+    "vite": "^8.2.2",
+    "vitest": "^4.1.9",
+    "wrangler": "^4.129.0"
+  }
+}
