@@ -580,11 +580,15 @@ html[data-theme='dark'] .field input, html[data-theme='dark'] .field textarea, h
    clipped edge for the end of the table. The two `local` layers ride with
    the content and mask the shadow beneath them; reaching an end slides the
    mask over that side's shadow, so the hint shows only where there is more. */
+/* The masks are painted in the ground the scroller sits on: the page by
+   default, the card inside one (see the card rules further down), or they
+   show as a pale glow along both edges. */
 .tscroll {
+  --scroll-ground: var(--bg);
   overflow-x: auto; overscroll-behavior-x: contain;
   background:
-    linear-gradient(to right, var(--bg) 40%, transparent) left / 26px 100% no-repeat local,
-    linear-gradient(to left, var(--bg) 40%, transparent) right / 26px 100% no-repeat local,
+    linear-gradient(to right, var(--scroll-ground) 40%, transparent) left / 26px 100% no-repeat local,
+    linear-gradient(to left, var(--scroll-ground) 40%, transparent) right / 26px 100% no-repeat local,
     radial-gradient(farthest-side at 0 50%, color-mix(in srgb, var(--fg) 26%, transparent), transparent) left / 11px 100% no-repeat scroll,
     radial-gradient(farthest-side at 100% 50%, color-mix(in srgb, var(--fg) 26%, transparent), transparent) right / 11px 100% no-repeat scroll;
   transition: background-color 0.9s var(--ease);
@@ -1143,7 +1147,13 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 .widget .wbody.center { display: flex; align-items: center; justify-content: center; text-align: center; font-size: 13px; color: var(--muted); }
 .widget .rank .rh { position: sticky; top: 0; z-index: 1; background: var(--card); transition: background 0.9s var(--ease), border-color 0.9s var(--ease); }
 .widget .wbody:has(> .tscroll) { overflow: hidden; }
-.widget .tscroll { height: 100%; overflow: auto; }
+/* Inside a card the table runs to the card's edges: the scroller bleeds by the
+   card's inset so row hairlines span the full width and the scroll hint sits
+   on the edge, while the first and last cells take that inset as padding so
+   text still lines up with the card's title. */
+.widget .tscroll { height: 100%; overflow: auto; margin: 0 -18px; width: calc(100% + 36px); --scroll-ground: var(--card); }
+.widget .dtable th:first-child, .widget .dtable td:first-child { padding-left: 18px; }
+.widget .dtable th:last-child, .widget .dtable td:last-child { padding-right: 18px; }
 .widget .dtable thead th { position: sticky; top: 0; z-index: 1; background: var(--card); transition: background 0.9s var(--ease); }
 .wnote { font-size: 13.5px; color: var(--fg); }
 
@@ -1356,7 +1366,10 @@ kbd.kb { display: inline-block; margin-left: 8px; padding: 0 5px; min-width: 16p
 @media (pointer: coarse) { .chart-head .seeall { opacity: 1; } }
 .explore .tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
 .explore .tools .field { flex: 1; min-width: 200px; max-width: 360px; }
-.explore .tscroll { max-height: min(72vh, 900px); overflow: auto; }
+.explore .tscroll { max-height: min(72vh, 900px); overflow: auto; margin: 0 -20px -20px; width: calc(100% + 40px); --scroll-ground: var(--card); }
+.explore .dtable th:first-child, .explore .dtable td:first-child { padding-left: 20px; }
+.explore .dtable th:last-child, .explore .dtable td:last-child { padding-right: 20px; }
+.explore .dtable tbody tr:last-child td { border-bottom: 0; }
 .explore .dtable thead th { position: sticky; top: 0; z-index: 1; background: var(--card); }
 
 /* ── Shared dashboards: the app's topbar and page, no rail ── */
