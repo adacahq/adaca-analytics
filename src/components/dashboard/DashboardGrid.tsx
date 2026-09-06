@@ -200,7 +200,11 @@ export default function DashboardGrid({
               <GridLayout
                 width={width}
                 layout={layout}
-                gridConfig={{ cols: 12, rowHeight: 96, margin: [14, 14] as const }}
+                /* containerPadding [0,0]: RGL defaults it to `margin`, which insets the
+                   whole grid by 14px and leaves the widgets sitting inboard of the
+                   masthead. Zero it so the first column's left edge and the last
+                   column's right edge line up with the title and the lede. */
+                gridConfig={{ cols: 12, rowHeight: 96, margin: [14, 14] as const, containerPadding: [0, 0] as const }}
                 dragConfig={{ enabled: editing, handle: '.widget-drag', cancel: 'button, a, input, textarea, select' }}
                 resizeConfig={{ enabled: editing, handles: ['se'] as const }}
                 onLayoutChange={onLayoutChange}

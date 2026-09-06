@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import Modal from '@/components/ui/Modal';
 import { useConfirm } from '@/components/ui/Confirm';
-import { usePanel, Chevron } from '@/layouts/App/usePanel';
+import { usePanel } from '@/layouts/App/usePanel';
 import { deleteDashboardAction, duplicateDashboardAction, renameDashboardAction, resetDashboardAction } from '@/lib/dashboard/actions';
 import { dashboardHref } from '@/lib/nav';
 import type { Dashboard, WidgetInstance } from '@/lib/dashboard/types';
@@ -67,8 +67,8 @@ export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashb
 
   return (
     <div className="tbdrop" ref={ref}>
-      <button type="button" className="btn btn-ghost btn-sm" onClick={toggle} aria-expanded={open} aria-haspopup="menu" disabled={pending} style={{ gap: 6 }}>
-        More <Chevron />
+      <button type="button" className="btn btn-ghost btn-sm" onClick={toggle} aria-expanded={open} aria-haspopup="menu" disabled={pending}>
+        More
       </button>
       {open ? (
         <div className="tbpanel right" role="menu" style={{ minWidth: 200 }}>

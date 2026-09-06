@@ -372,7 +372,12 @@ main.page { margin-left: var(--sb-w); padding-top: 56px; }
    Text colours come from --accent-strong / --crit-strong (see the
    token note in the theme blocks): --accent and --red both fail AA
    at this type size on the light theme. */
-.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; min-height: 40px; padding: 10px 22px; border-radius: 40px; border: 1px solid color-mix(in srgb, var(--fg) 50%, transparent); background: none; color: var(--fg); cursor: pointer; text-decoration: none; transition: color 0.25s, border-color 0.25s, background 0.25s; }
+/* Tracked uppercase leaves a trailing letter-space after the last glyph, so a
+   symmetric `padding` reads with more air on the right than on the left. Every
+   .btn padding therefore shaves the tracking off the right side (`--btn-px` is
+   the honest value; the right is one em-fraction less) so the label sits
+   optically centred inside the pill. */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: var(--font-mono); font-size: 10.5px; font-weight: 500; letter-spacing: 0.15em; text-transform: uppercase; min-height: 40px; --btn-px: 22px; padding: 10px calc(var(--btn-px) - 0.15em) 10px var(--btn-px); border-radius: 40px; border: 1px solid color-mix(in srgb, var(--fg) 50%, transparent); background: none; color: var(--fg); cursor: pointer; text-decoration: none; transition: color 0.25s, border-color 0.25s, background 0.25s; }
 .btn:hover { color: var(--accent-strong); border-color: var(--accent-strong); background: color-mix(in srgb, var(--accent) 9%, transparent); }
 /* --accent-ink, not #fff: white on the dark theme's lighter accent fails
    contrast. See the token note in the theme blocks. Each filled/tinted
@@ -384,7 +389,7 @@ main.page { margin-left: var(--sb-w); padding-top: 56px; }
 .btn-danger { color: var(--crit-strong); border-color: color-mix(in srgb, var(--crit) 60%, transparent); }
 .btn-danger:hover { color: var(--crit-strong); border-color: var(--crit-strong); background: color-mix(in srgb, var(--crit) 10%, transparent); }
 .btn[disabled] { opacity: 0.4; cursor: not-allowed; }
-.btn.sm { min-height: 30px; padding: 6px 15px; font-size: 9.5px; }
+.btn.sm { min-height: 30px; --btn-px: 15px; padding: 6px calc(var(--btn-px) - 0.15em) 6px var(--btn-px); font-size: 9.5px; }
 .btn-text { border: none; padding: 0; min-height: 0; border-radius: 0; letter-spacing: 0.14em; }
 .btn-text:hover { color: var(--accent-strong); background: none; }
 /* The quiet tier. It was a --ghost fill (1.09:1 against white, and gone
@@ -714,7 +719,7 @@ span[data-tip]:focus-visible { outline: 2px solid var(--accent); outline-offset:
   .seg button { padding: 9px 14px; }
   .tabs button, .tabs a { padding: 11px 12px 11px 14px; }
   .btn { min-height: 44px; }
-  .btn.sm, .btn.btn-sm { min-height: 40px; padding: 6px 18px; }
+  .btn.sm, .btn.btn-sm { min-height: 40px; --btn-px: 18px; padding: 6px calc(var(--btn-px) - 0.15em) 6px var(--btn-px); }
   .check input { width: 20px; height: 20px; }
 }
 
@@ -742,7 +747,7 @@ span[data-tip]:focus-visible { outline: 2px solid var(--accent); outline-offset:
    works without also requiring the compound .btn.sm selector. Always
    paired with .btn in Red's markup, so ordering (after .btn above) is
    what lets it win the min-height/padding/font-size cascade. */
-.btn-sm { min-height: 30px; padding: 6px 15px; font-size: 9.5px; }
+.btn-sm { min-height: 30px; --btn-px: 15px; padding: 6px calc(var(--btn-px) - 0.15em) 6px var(--btn-px); font-size: 9.5px; }
 
 .text-link {
   color: var(--accent);
@@ -1172,7 +1177,13 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 .rank .rl.mono { font-family: var(--font-mono); font-size: 12px; }
 .dlink { color: inherit; text-decoration: none; }
 .dlink:hover, .dlink:focus-visible { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-.backlink { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; }
+/* Back: the chevron alone, hung half out of the content edge so its stroke
+   lines up with the title below while the round hover halo overhangs into the
+   gutter. Paired with the eyebrow, which already names where it goes. */
+.backbtn { --bb-size: 26px; --bb-icon: 16px; flex: none; display: grid; place-items: center; width: var(--bb-size); height: var(--bb-size); margin-left: calc((var(--bb-icon) - var(--bb-size)) / 2 - 5px); border: none; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; transition: color 0.25s, background 0.25s; }
+.backbtn svg { width: var(--bb-icon); height: var(--bb-icon); }
+.backbtn:hover { color: var(--fg); background: var(--ghost); }
+.backbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 /* The strip may wrap (seven KPIs on a narrow main column); cells draw their
    own hairlines so a partial last row does not read as a grey block. */
 .detail .stats { gap: 0; background: var(--bg); }
@@ -1242,7 +1253,7 @@ a.kpi:hover .kopen { opacity: 1; }
 @media (pointer: coarse) {
   .rank .rr { padding: 10px 10px; }
   .chart-head .muted-link { padding: 8px 6px; margin: -8px -2px; }
-  .backlink { padding: 8px 0; }
+  .backbtn { --bb-size: 34px; }
   .tbpanel a, .tbpanel .tbrow { padding-top: 11px; padding-bottom: 11px; }
   .pick { padding-top: 16px; padding-bottom: 16px; }
   .mcard .macts .muted-link { padding: 8px 0; }
