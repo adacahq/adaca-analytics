@@ -11,7 +11,7 @@ import { entityHref } from '@/lib/analytics/entities';
 import { METRIC_BY_KEY, isMetricKey, type MetricDef } from '@/lib/analytics/metrics';
 import { fmtBucket, fmtDelta, fmtHourLong, fmtInt, fmtPercent } from '@/lib/format';
 import type { Bucket, RankedRow, WidgetConfig, WidgetData, WidgetInstance } from '@/lib/dashboard/types';
-import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useCompact, useCompareCaption, useNarrow, usePeriodQuery } from './chart-helpers';
+import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, clickedName, useCompact, useCompareCaption, useHints, useNarrow, usePeriodQuery, useTapToOpen } from './chart-helpers';
 import { useShare } from './ShareContext';
 
 /** Where a ranked row opens; null keeps the mark plain. */
@@ -37,7 +37,6 @@ export function Centered({ children }: { children: React.ReactNode }) {
 }
 
 const OPEN_HINT = 'Click to open';
-const narrowHint = (bucket: Bucket | 'minute') => `Click to narrow to this ${bucketNoun(bucket)}`;
 
 /* ── KPI ─────────────────────────────────────────────────────────── */
 function Sparkline({ values }: { values: number[] }) {
@@ -163,6 +162,8 @@ const withLinks = (rows: RankedRow[], href: Href): Mark[] => rows.map((r) => ({ 
 /** Donut of shares; sectors and legend entries open their entity. */
 function DonutBody({ rows, total, metric, href }: { rows: RankedRow[]; total: number; metric: MetricDef; href?: Href }) {
   const router = useRouter();
+  const arm = useTapToOpen();
+  const hints = useHints();
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
   const shown = rows.reduce((a, r) => a + r.value, 0);
   const data: Mark[] = withLinks(rows, href ?? null);
@@ -176,12 +177,12 @@ function DonutBody({ rows, total, metric, href }: { rows: RankedRow[]; total: nu
     <ChartFrame clickable={clickable}>
       <ResponsiveContainer width="100%" height="100%">
         <PieChart>
-          <Pie data={data} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="82%" paddingAngle={1} stroke="var(--bg)" startAngle={90} endAngle={-270} isAnimationActive={false} onClick={(_, i) => open(i)}>
+          <Pie data={data} dataKey="value" nameKey="name" innerRadius="55%" outerRadius="82%" paddingAngle={1} stroke="var(--bg)" startAngle={90} endAngle={-270} isAnimationActive={false} onClick={(_, i) => arm(`sector:${i}`) && open(i)}>
             {data.map((d, i) => (
               <Cell key={i} fill={SERIES[i % SERIES.length]} style={{ cursor: d.to ? 'pointer' : 'default', outline: 'none' }} />
             ))}
           </Pie>
-          <Tooltip content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={(p) => ((p as Mark | undefined)?.to ? OPEN_HINT : null)} />} />
+          <Tooltip content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={(p) => ((p as Mark | undefined)?.to ? hints.open : null)} />} />
           <Legend wrapperStyle={{ fontSize: 11, fontFamily: 'var(--font-mono)' }} onClick={(e) => open(data.findIndex((d) => d.name === e.value))} />
         </PieChart>
       </ResponsiveContainer>
@@ -195,6 +196,8 @@ function DonutBody({ rows, total, metric, href }: { rows: RankedRow[]; total: nu
  */
 function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: MetricDef; bucket?: Bucket | 'minute'; narrow?: ((name: string) => void) | null }) {
   const router = useRouter();
+  const arm = useTapToOpen();
+  const hints = useHints();
   if (data.length === 0) return <Centered>No data for this period</Centered>;
   const fmtX = (v: string) => (bucket && bucket !== 'minute' ? fmtBucket(v, bucket) : bucket === 'minute' ? `${v}m` : v);
   const fmtTitle = (v: string) => (bucket === 'hour' ? fmtHourLong(v) : fmtX(v));
@@ -205,7 +208,7 @@ function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: Me
     if (d?.to) router.push(d.to);
   };
   const clickable = !!narrow || data.some((d) => d.to);
-  const hint = narrow ? narrowHint(bucket ?? 'day') : clickable ? (p: unknown) => ((p as Mark | undefined)?.to ? OPEN_HINT : null) : null;
+  const hint = narrow ? hints.narrow(bucket ?? 'day') : clickable ? (p: unknown) => ((p as Mark | undefined)?.to ? hints.open : null) : null;
   return (
     <ChartFrame clickable={clickable}>
       <ResponsiveContainer width="100%" height="100%">
@@ -214,7 +217,7 @@ function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: Me
           margin={{ top: 8, right: 8, bottom: 0, left: -18 }}
           onClick={(state) => {
             const name = clickedName(state);
-            if (name !== null && clickable) openName(name);
+            if (name !== null && clickable && arm(name)) openName(name);
           }}
         >
           <CartesianGrid vertical={false} stroke="var(--line)" />
@@ -233,6 +236,8 @@ function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: Me
 function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef; href?: Href }) {
   const router = useRouter();
   const compact = useCompact();
+  const arm = useTapToOpen();
+  const hints = useHints();
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
   const data = withLinks(rows, href ?? null);
   const byName = new Map(data.map((d) => [d.name, d]));
@@ -251,13 +256,13 @@ function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef;
           barCategoryGap={6}
           onClick={(state) => {
             const name = clickedName(state);
-            if (name !== null) openName(name);
+            if (name !== null && arm(name)) openName(name);
           }}
         >
           <CartesianGrid horizontal={false} stroke="var(--line)" />
           <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
           <YAxis type="category" dataKey="name" tick={(p) => <LinkTick {...p} size={compact ? 10 : 11} onOpen={clickable ? openName : null} />} tickLine={false} axisLine={false} width={compact ? 88 : 120} />
-          <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={clickable ? (p) => ((p as Mark | undefined)?.to ? OPEN_HINT : null) : null} />} />
+          <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={clickable ? (p) => ((p as Mark | undefined)?.to ? hints.open : null) : null} />} />
           <Bar dataKey="value" fill={SERIES[0]} radius={[0, 3, 3, 0]} isAnimationActive={false}>
             {data.map((d, i) => (
               <Cell key={i} style={{ cursor: d.to ? 'pointer' : 'default' }} />
@@ -271,6 +276,8 @@ function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef;
 
 /** A metric over calendar buckets; a click anywhere on the plot narrows the period to that bucket. */
 function LineBody({ points, metric, bucket, narrow }: { points: Mark[]; metric: MetricDef; bucket: Bucket | 'minute'; narrow?: ((name: string) => void) | null }) {
+  const arm = useTapToOpen();
+  const hints = useHints();
   if (points.length === 0) return <Centered>No data for this period</Centered>;
   const compare = points.some((p) => p.previous !== undefined);
   const fmtX = (v: string) => (bucket === 'minute' ? `${v}m` : fmtBucket(v, bucket));
@@ -283,13 +290,13 @@ function LineBody({ points, metric, bucket, narrow }: { points: Mark[]; metric: 
           margin={{ top: 8, right: 8, bottom: 0, left: -18 }}
           onClick={(state) => {
             const name = clickedName(state);
-            if (name !== null && narrow) narrow(name);
+            if (name !== null && narrow && arm(name)) narrow(name);
           }}
         >
           <CartesianGrid vertical={false} stroke="var(--line)" />
           <XAxis dataKey="name" tick={(p) => <LinkTick {...p} format={fmtX} onOpen={narrow ?? null} />} tickLine={false} axisLine={{ stroke: 'var(--line)' }} interval="preserveStartEnd" minTickGap={24} />
           <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-          <Tooltip content={<ChartTip title={fmtTitle} row={(v, k) => [metric.format(v), k === 'previous' ? 'Compared period' : metric.label]} hint={narrow ? narrowHint(bucket) : null} />} />
+          <Tooltip content={<ChartTip title={fmtTitle} row={(v, k) => [metric.format(v), k === 'previous' ? 'Compared period' : metric.label]} hint={narrow ? hints.narrow(bucket) : null} />} />
           {compare ? <Line type="monotone" dataKey="previous" stroke={SERIES[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false} isAnimationActive={false} /> : null}
           <Line type="monotone" dataKey="value" stroke={SERIES[0]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
         </LineChart>

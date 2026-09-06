@@ -274,7 +274,8 @@ the other way: a click on a day, week or month in a line or column chart (or on 
 date label) narrows the page to that span, on dashboards and on detail pages alike.
 Every clickable mark says so in its tooltip and takes the pointer; the few that
 cannot open anything (day-of-week columns, realtime minutes, site-wide totals) stay
-plain.
+plain. On a touch screen a mark takes two taps: the first shows its tooltip (there is
+no hover to do that), the second opens it; rows, tiles and labels open on one tap.
 
 A detail page shows, for the chosen period and the period before:
 

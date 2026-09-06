@@ -6,7 +6,7 @@
  * mark into a navigation — to an entity page, or to the same page narrowed to
  * the clicked day, week or month.
  */
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Text } from 'recharts';
 import type { Bucket } from '@/lib/dashboard/types';
@@ -30,6 +30,46 @@ export function useCompact(): boolean {
     return () => mq.removeEventListener('change', update);
   }, []);
   return compact;
+}
+
+/** True on touch screens (no hover): a mark's tooltip appears only on a tap there. */
+export function useCoarsePointer(): boolean {
+  const [coarse, setCoarse] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(hover: none) and (pointer: coarse)');
+    const update = () => setCoarse(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return coarse;
+}
+
+/**
+ * Two taps to open a chart mark on a touch screen: the first tap shows its
+ * tooltip (there is no hover to do that), the second tap on the same mark
+ * opens it. A tap on a different mark starts over. With a mouse the first
+ * click opens, as the tooltip was already up. Returns whether to open now.
+ */
+export function useTapToOpen(): (key: string) => boolean {
+  const coarse = useCoarsePointer();
+  const armed = useRef<string | null>(null);
+  return (key: string) => {
+    if (!coarse) return true;
+    if (armed.current === key) {
+      armed.current = null;
+      return true;
+    }
+    armed.current = key;
+    return false;
+  };
+}
+
+/** The tooltip's click hints, worded for the pointer in use. */
+export function useHints(): { open: string; narrow: (bucket: Bucket | 'minute') => string } {
+  const coarse = useCoarsePointer();
+  const verb = coarse ? 'Tap again' : 'Click';
+  return { open: `${verb} to open`, narrow: (bucket) => `${verb} to narrow to this ${bucketNoun(bucket)}` };
 }
 
 /** The period query to carry onto an entity page, from the current URL. */
