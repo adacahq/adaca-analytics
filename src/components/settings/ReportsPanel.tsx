@@ -94,7 +94,11 @@ export default function ReportsPanel({ reports, sites, emailConfigured }: { repo
 
       {!emailConfigured ? (
         <div className="alert mt-4">
-          Email delivery is off until the <code>RESEND_API_KEY</code> and <code>REPORT_FROM</code> secrets are set (README → Reports). Slack webhooks work without them.
+          Email delivery is off until the <code>RESEND_API_KEY</code> and <code>REPORT_FROM</code> secrets are set; see{' '}
+          <a className="text-link" href="https://github.com/adacahq/adaca-analytics/blob/main/docs/features.md#reports-and-alerts" target="_blank" rel="noreferrer">
+            Reports and Alerts
+          </a>{' '}
+          in the docs. Slack webhooks work without them.
         </div>
       ) : null}
 

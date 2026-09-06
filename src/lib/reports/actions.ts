@@ -17,7 +17,7 @@ function validTarget(channel: ReportChannel, target: string): string | null {
   const t = target.trim();
   if (channel === 'email') {
     if (!EMAIL.test(t)) return 'Enter an email address.';
-    if (!emailConfigured()) return 'Email is not set up on this deployment: set the RESEND_API_KEY and REPORT_FROM secrets (README).';
+    if (!emailConfigured()) return 'Email is not set up on this deployment: set the RESEND_API_KEY and REPORT_FROM secrets.';
   } else if (!isSlackWebhook(t)) return 'Enter a Slack incoming-webhook URL (https://hooks.slack.com/services/…).';
   return null;
 }

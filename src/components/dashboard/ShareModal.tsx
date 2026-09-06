@@ -96,7 +96,11 @@ export default function ShareModal({ open, onClose, dashboard }: { open: boolean
       }
     >
       <p className="text-[13px]" style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-        A link opens <b style={{ color: 'var(--fg)' }}>{dashboard.name}</b> read-only for the current site, without signing in and outside the deployment’s gate. Behind Cloudflare Access, add a bypass for <code>/share/*</code>, <code>/api/share/*</code> and <code>/_next/*</code> (see the README).
+        A link opens <b style={{ color: 'var(--fg)' }}>{dashboard.name}</b> read-only for the current site, without signing in and outside the deployment’s gate. Behind Cloudflare Access, add a bypass for <code>/share/*</code>, <code>/api/share/*</code> and <code>/_next/*</code>; the{' '}
+        <a className="text-link" href="https://github.com/adacahq/adaca-analytics/blob/main/docs/operations.md#protecting-your-deployment" target="_blank" rel="noreferrer">
+          operations guide
+        </a>{' '}
+        lists every path.
       </p>
 
       <div className="mt-5 flex flex-col gap-3">

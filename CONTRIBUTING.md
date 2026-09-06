@@ -7,7 +7,7 @@ The notes below are what a reviewer will check.
 
 ```
 npm install
-cp .dev.vars.example .dev.vars   # a Google service-account key, see the README
+cp .dev.vars.example .dev.vars   # a Google service-account key, see docs/operations.md
 npm run types                    # worker-configuration.d.ts from wrangler.jsonc
 npm run db:migrate               # local D1
 npm run dev
@@ -63,8 +63,8 @@ Google's public GA4 sample dataset.
 - **SQL built from data lives in one place.**
   `src/lib/db/sql.ts`, with tests. Everything else is parameterised.
 - **No sign-in by design.**
-  Do not add auth middleware. Protection is documented as a deployment concern in the
-  README.
+  Do not add auth middleware. Protection is documented as a deployment concern in
+  `docs/operations.md`.
 - **Copy follows the Adaca house style.**
   Australian spelling, plain sentences, no em dashes, Title Case headings, and
   sentence case for buttons, labels and questions.

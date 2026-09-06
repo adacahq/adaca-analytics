@@ -4,7 +4,7 @@
  * shape, integration-tested against the public GA4 sample dataset.
  *
  * Numbers differ slightly from the GA UI (which applies thresholding and
- * modelling); the README says so. Derivations:
+ * modelling); docs/features.md says so. Derivations:
  *  - sessions        = distinct (user_pseudo_id, ga_session_id)
  *  - engaged session = any event in the session carried session_engaged=1
  *  - users           = distinct user_pseudo_id
