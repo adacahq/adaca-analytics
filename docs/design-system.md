@@ -744,7 +744,13 @@ of `globals.css`). Every value sits on the scales above.
 | `.chart-click`, `.tick-link`, `.ctip`, `a.kpi`, `.kopen` | The chart affordances: a clickable plot and its legend take the pointer; axis labels that open something underline in the accent; the one tooltip (`.ctip`) lists the values and ends with the click hint in accent mono ("Click to open", "Click to narrow to this day"); a KPI tile that is a link colours its figure on hover and carries a small "open ↗" cue. Marks that open nothing keep the default cursor and no hint. |
 | `.detail`, `.bgrid`, `.bcard`, `.wnote-hint` | The entity page: the stat strip draws its own hairlines (`box-shadow`) so a wrapped last row never shows a grey block; breakdown cards sit in an auto-fill 3-up grid that stacks under 640px; the hint links to Settings when the pair families are missing. `.view-title.mono` renders paths and hosts in the mono face at a smaller size. |
 
-Small screens (`max-width: 640px`): the topbar drops its mono labels and the
-theme toggle, and the dashboard grid stops being a grid — widgets stack
-full-width with resize handles hidden (react-grid-layout's inline transforms
-lose to `!important` overrides on purpose).
+Small screens. Below 900px the rail is a drawer, the topbar keeps Menu · site ·
+period, and the dashboard grid stops being react-grid-layout's: `.react-grid-layout`
+becomes a two-column CSS grid (`data-wide` widgets and notes span both), inline
+transforms lose to `!important` overrides on purpose, and edit mode swaps the drag
+handle for `.wmove` buttons. Below 640px KPI tiles shrink to their content (a 2×2
+strip), charts take a fixed phone-sized plot, lists grow to their rows, modals become
+bottom sheets (`.overlay` anchors to the bottom, `.mbody` scrolls, `.mfoot` sticks),
+the step indicator keeps only the current step's name (`.ws span i` hides), and wide
+tables are replaced by `.mcard` lists via the `.only-sm` / `.not-sm` pair. On coarse
+pointers rows, links and panel items grow their padding, never their type.

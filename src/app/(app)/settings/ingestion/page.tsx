@@ -73,7 +73,40 @@ export default async function IngestionPage() {
       <h3 className="mt-10" style={{ fontSize: 15, fontWeight: 500 }}>
         Recent runs
       </h3>
-      <div className="tscroll mt-3">
+      <div className="only-sm mt-3">
+        {runs.slice(0, 20).map((r) => (
+          <div key={r.id} className="card mcard">
+            <div className="mrow">
+              <span style={{ fontWeight: 500 }}>{byId.get(r.site_id)?.name ?? r.site_id}</span>
+              <span className={STATUS_PILL[r.status] ?? 'pill'}>{r.status}</span>
+            </div>
+            <div className="mmeta">
+              <span className="pill">{r.kind}</span>
+              <span className="pill">{r.scope === 'pairs' ? 'drill-down' : 'all'}</span>
+            </div>
+            <dl className="mdl">
+              <dt>Window</dt>
+              <dd>
+                {fmtDay(r.from_date)} to {fmtDay(r.to_date)}
+              </dd>
+              <dt>Progress</dt>
+              <dd>
+                {r.units} units · {fmtInt(r.rows_written)} rows
+              </dd>
+              <dt>Started</dt>
+              <dd>{r.started_at ? fmtInstant(r.started_at) : '–'}</dd>
+              {r.error ? (
+                <>
+                  <dt>Error</dt>
+                  <dd style={{ color: 'var(--crit)' }}>{r.error}</dd>
+                </>
+              ) : null}
+            </dl>
+          </div>
+        ))}
+        {runs.length === 0 ? <p style={{ color: 'var(--muted)' }}>No runs yet.</p> : null}
+      </div>
+      <div className="tscroll mt-3 not-sm">
         <table className="dtable compact">
           <thead>
             <tr>

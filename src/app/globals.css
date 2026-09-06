@@ -1116,14 +1116,48 @@ select.field-input option { background: var(--bg); color: var(--fg); }
   .sb nav { margin-bottom: 8px; }
 }
 @media (max-width: 640px) {
+  .tb { padding: 0 12px; gap: 6px; }
   .tb .tgl { display: none; }
   .tbbtn .tbsect { display: none; }
-  .tbbtn { padding: 7px 8px; gap: 6px; }
-  .tbbtn b { max-width: 120px; }
+  .tbbtn { padding: 7px 8px; gap: 6px; min-height: 40px; }
+  .tbbtn b { max-width: 34vw; }
   .tb > .tbctl:last-child { display: none; }
-  .react-grid-layout { height: auto !important; display: flex; flex-direction: column; gap: 14px; }
+}
+
+/* ── Small-screen dashboard grid ─────────────────────────────────
+   Below 900px react-grid-layout's absolute 12-column placement gives way
+   to a CSS grid of two columns: wide widgets (`data-wide`) and, on phones,
+   everything but a KPI tile span both. KPI tiles shrink to their content
+   so four of them read as one compact strip instead of four tall cards.
+   Drag and resize cannot work in this mode, so edit mode swaps the drag
+   handle for move up / move down buttons (`.wmove`). */
+.wmove { display: none; }
+@media (max-width: 900px) {
+  .react-grid-layout { height: auto !important; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   .react-grid-item { position: relative !important; transform: none !important; width: 100% !important; left: 0; top: 0; }
-  .react-resizable-handle { display: none !important; }
+  .react-grid-item[data-wide='1'], .react-grid-item[data-type='note'] { grid-column: span 2; }
+  .react-grid-item[data-type='note'] { height: auto !important; min-height: 0; }
+  .react-resizable-handle, .widget-drag { display: none !important; }
+  .wmove { display: inline-flex; align-items: center; justify-content: center; min-width: 32px; min-height: 32px; margin: -6px 0; font-size: 14px; line-height: 1; }
+  .wmove[disabled] { opacity: 0.3; cursor: default; }
+}
+@media (max-width: 640px) {
+  .react-grid-layout { gap: 10px; }
+  .react-grid-item:not([data-type='kpi']) { grid-column: span 2; }
+  .react-grid-item[data-type='kpi'] { height: auto !important; min-height: 118px; }
+  .react-grid-item[data-type='kpi'] .widget { padding: 12px 14px; }
+  .react-grid-item[data-type='kpi'] .widget .chart-head { margin-bottom: 6px; }
+  .kpi .kv { font-size: 24px; }
+  .kpi .kf { margin-top: 6px; }
+  .kpi .kspark { height: 26px; margin-top: 8px; }
+  .kpi .kopen { display: none; }
+  /* Heights follow the content type rather than the desktop row count:
+     charts get a fixed, phone-sized plot; lists grow to their rows. */
+  .react-grid-item:not([data-type='kpi']):not([data-type='note']) { height: auto !important; }
+  .react-grid-item[data-type='line'] .widget, .react-grid-item[data-type='column'] .widget, .react-grid-item[data-type='bar'] .widget, .react-grid-item[data-type='donut'] .widget { height: 320px; }
+  .react-grid-item[data-type='table'] .widget { height: 420px; }
+  .react-grid-item[data-type='list'] .widget { height: auto; min-height: 160px; }
+  .react-grid-item[data-type='list'] .widget .wbody { max-height: 440px; }
 }
 
 /* ── Drill-down ────────────────────────────────────────────────────
@@ -1172,3 +1206,44 @@ a.kpi:hover .kopen { opacity: 1; }
 .ctip b { display: block; font-weight: 500; margin-bottom: 2px; }
 .ctip > span { display: block; color: var(--muted); }
 .ctip small { display: block; margin-top: 6px; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+
+/* ── Phones: sheets, steps, tables, touch ─────────────────────────
+   Modals become bottom sheets with their own scrolling body and a pinned
+   footer; the step indicator keeps only the current step's name; wide
+   tables are replaced by card lists (`.only-sm` / `.not-sm`); and every
+   row, label and control that a finger has to hit grows its target. */
+.only-sm { display: none; }
+@media (max-width: 640px) {
+  .only-sm { display: block; }
+  .not-sm { display: none !important; }
+  .overlay { padding: 0; align-items: flex-end; overflow: hidden; }
+  .modal { width: 100% !important; max-width: none; max-height: 94svh; border-radius: 18px 18px 0 0; border-bottom: 0; display: flex; flex-direction: column; }
+  .modal .mhead { flex: none; }
+  .modal .mbody { flex: 1 1 auto; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+  .modal .mfoot { flex: none; position: sticky; bottom: 0; background: var(--bg); }
+  .wsteps { margin-top: 22px; }
+  .wsteps .ws:not(.on) span i { display: none; }
+  .wsteps .wl { min-width: 12px; margin: 0 8px; }
+  .detail .stats { margin-top: 20px; }
+  .bcard { max-height: 420px; }
+  .tbpanel.range .seg button { padding: 8px 12px; }
+  .stat b { font-size: clamp(20px, 6vw, 28px); }
+}
+.wsteps .ws span b, .wsteps .ws span i { font: inherit; font-style: normal; font-weight: inherit; }
+.mcard { display: block; padding: 14px 16px; }
+.mcard + .mcard { margin-top: 10px; }
+.mcard .mrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.mcard .mmeta { display: flex; flex-wrap: wrap; gap: 6px 10px; margin-top: 8px; }
+.mcard .mmeta .pill { flex: none; }
+.mcard .mdl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin-top: 10px; font-size: 13px; }
+.mcard .mdl dt { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); align-self: center; }
+.mcard .mdl dd { margin: 0; font-family: var(--font-mono); font-size: 12px; overflow-wrap: anywhere; }
+.mcard .macts { display: flex; gap: 18px; margin-top: 12px; }
+@media (pointer: coarse) {
+  .rank .rr { padding: 10px 10px; }
+  .chart-head .muted-link { padding: 8px 6px; margin: -8px -2px; }
+  .backlink { padding: 8px 0; }
+  .tbpanel a, .tbpanel .tbrow { padding-top: 11px; padding-bottom: 11px; }
+  .pick { padding-top: 16px; padding-bottom: 16px; }
+  .mcard .macts .muted-link { padding: 8px 0; }
+}

@@ -14,6 +14,8 @@ export default function WidgetCard({
   onEdit,
   onDuplicate,
   onRemove,
+  onMove,
+  canMove = [true, true],
   loading,
   error,
   children,
@@ -24,6 +26,9 @@ export default function WidgetCard({
   onEdit: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
+  /** Small screens: move one step up or down the reading order instead of dragging. */
+  onMove?: (dir: -1 | 1) => void;
+  canMove?: [boolean, boolean];
   loading?: boolean;
   error?: string | null;
   children: ReactNode;
@@ -46,6 +51,16 @@ export default function WidgetCard({
         </span>
         {editing && (
           <span className="flex shrink-0 items-center gap-3">
+            {onMove ? (
+              <>
+                <button type="button" className="muted-link wmove" title="Move up" aria-label="Move up" disabled={!canMove[0]} onClick={() => onMove(-1)}>
+                  ↑
+                </button>
+                <button type="button" className="muted-link wmove" title="Move down" aria-label="Move down" disabled={!canMove[1]} onClick={() => onMove(1)}>
+                  ↓
+                </button>
+              </>
+            ) : null}
             <button type="button" className="muted-link" title="Configure" aria-label="Configure" onClick={onEdit}>
               Edit
             </button>

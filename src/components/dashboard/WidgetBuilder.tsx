@@ -46,7 +46,8 @@ function Steps({ current, onJump }: { current: number; onJump: (i: number) => vo
           <div className={`ws${i === current ? ' on' : i < current ? ' done' : ''}`}>
             <button type="button" onClick={() => i < current && onJump(i)} style={{ background: 'none', border: 0, padding: 0, cursor: i < current ? 'pointer' : 'default' }}>
               <span>
-                {i + 1} · {s}
+                <b>{i + 1}</b>
+                <i> · {s}</i>
               </span>
             </button>
           </div>

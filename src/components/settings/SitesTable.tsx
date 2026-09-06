@@ -117,7 +117,42 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
 
   return (
     <>
-      <DataTable columns={cols} rows={sites} getRowKey={(s) => s.id} empty="No sites yet." />
+      <div className="not-sm">
+        <DataTable columns={cols} rows={sites} getRowKey={(s) => s.id} empty="No sites yet." />
+      </div>
+      <div className="only-sm">
+        {sites.length === 0 ? <p style={{ color: 'var(--muted)' }}>No sites yet.</p> : null}
+        {sites.map((s) => (
+          <div key={s.id} className="card mcard">
+            <div className="mrow">
+              <span style={{ fontWeight: 500 }}>{s.name}</span>
+              <span className="pill">{s.primary_source === 'bigquery' ? 'BigQuery' : 'GA4 API'}</span>
+            </div>
+            <dl className="mdl">
+              <dt>Property</dt>
+              <dd>{s.ga_property_id ?? '–'}</dd>
+              <dt>Timezone</dt>
+              <dd>{s.timezone}</dd>
+              <dt>Data</dt>
+              <dd>{s.span.from ? `${fmtDay(s.span.from)} to ${fmtDay(s.span.to!)}` : 'none yet'}</dd>
+              <dt>Rows</dt>
+              <dd>{s.rows.toLocaleString()}</dd>
+              <dt>Drill-down</dt>
+              <dd>
+                <span className={s.drilldown === 1 ? 'pill ok' : 'pill'}>{s.drilldown === 1 ? 'on' : 'off'}</span>
+              </dd>
+            </dl>
+            <div className="macts">
+              <button type="button" className="muted-link" onClick={() => openEdit(s)}>
+                Edit
+              </button>
+              <button type="button" className="muted-link" onClick={() => remove(s)}>
+                Remove
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
       <Modal
         open={!!editing}
         onClose={() => setEditing(null)}

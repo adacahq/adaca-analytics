@@ -28,6 +28,8 @@ export default function WidgetView({
   onEdit,
   onDuplicate,
   onRemove,
+  onMove,
+  canMove,
 }: {
   siteId: string;
   instance: WidgetInstance;
@@ -36,6 +38,8 @@ export default function WidgetView({
   onEdit: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
+  onMove?: (dir: -1 | 1) => void;
+  canMove?: [boolean, boolean];
 }) {
   const meta = WIDGET_BY_TYPE[instance.type];
   const ds = instance.config.dataset ? DATASET_BY_KEY[instance.config.dataset] : undefined;
@@ -79,7 +83,7 @@ export default function WidgetView({
       editing={editing}
       onEdit={onEdit}
       onDuplicate={onDuplicate}
-      onRemove={onRemove}
+      onRemove={onRemove} onMove={onMove} canMove={canMove}
       loading={loading}
       error={error}
     >

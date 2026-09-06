@@ -25,7 +25,8 @@ function Steps({ current }: { current: number }) {
           {i > 0 && <span className="wl" />}
           <div className={`ws${i === current ? ' on' : i < current ? ' done' : ''}`}>
             <span>
-              {i + 1} · {s}
+              <b>{i + 1}</b>
+              <i> · {s}</i>
             </span>
           </div>
         </span>

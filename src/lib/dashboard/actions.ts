@@ -23,6 +23,7 @@ function sanitise(layout: unknown): WidgetInstance[] {
       y: Math.max(0, Math.round(Number(it.y) || 0)),
       w: Math.max(1, Math.min(12, Math.round(Number(it.w) || 1))),
       h: Math.max(1, Math.min(40, Math.round(Number(it.h) || 1))),
+      order: Number.isFinite(Number(it.order)) && it.order !== undefined && it.order !== null ? Math.max(0, Math.min(999, Math.round(Number(it.order)))) : undefined,
       config: typeof it.config === 'object' && it.config ? it.config : {},
     });
   }

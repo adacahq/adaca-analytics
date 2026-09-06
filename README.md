@@ -229,6 +229,14 @@ convention GA uses. Derivations are documented at the top of
 Dashboards are shared by everyone who can open the deployment; there are no user
 accounts.
 
+**On a phone or tablet** the same dashboards reflow rather than shrink: below 900px
+the rail becomes a drawer behind **Menu** and widgets fall into two columns (charts
+span both); below 640px KPI tiles form a compact strip, charts get a phone-sized
+plot, lists grow to their rows, tables scroll sideways inside their card, and the
+settings tables become card lists. **Customise** still works: drag gives way to
+move up / move down, and the widget builder opens as a bottom sheet whose footer
+stays put while the form scrolls. Every tap target is at least 40px on touch screens.
+
 ## Drill-down
 
 Almost every value on a dashboard opens: a source, a page, a landing page, a channel,

@@ -11,7 +11,7 @@ import { entityHref } from '@/lib/analytics/entities';
 import { METRIC_BY_KEY, isMetricKey, type MetricDef } from '@/lib/analytics/metrics';
 import { fmtBucket, fmtDelta, fmtInt, fmtPercent } from '@/lib/format';
 import type { Bucket, RankedRow, WidgetConfig, WidgetData, WidgetInstance } from '@/lib/dashboard/types';
-import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useNarrow, usePeriodQuery } from './chart-helpers';
+import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useCompact, useNarrow, usePeriodQuery } from './chart-helpers';
 
 /** Where a ranked row opens; null keeps the mark plain. */
 export type Href = ((row: { key: string; sub?: string; raw?: string }) => string | null) | null;
@@ -228,6 +228,7 @@ function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: Me
 /** Horizontal bars, longest first; a bar, its band and its label open the entity. */
 function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef; href?: Href }) {
   const router = useRouter();
+  const compact = useCompact();
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
   const data = withLinks(rows, href ?? null);
   const byName = new Map(data.map((d) => [d.name, d]));
@@ -242,7 +243,7 @@ function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef;
         <BarChart
           data={data}
           layout="vertical"
-          margin={{ top: 4, right: 12, bottom: 0, left: 8 }}
+          margin={{ top: 4, right: 12, bottom: 0, left: compact ? 0 : 8 }}
           barCategoryGap={6}
           onClick={(state) => {
             const name = clickedName(state);
@@ -251,7 +252,7 @@ function BarBody({ rows, metric, href }: { rows: RankedRow[]; metric: MetricDef;
         >
           <CartesianGrid horizontal={false} stroke="var(--line)" />
           <XAxis type="number" tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-          <YAxis type="category" dataKey="name" tick={(p) => <LinkTick {...p} size={11} onOpen={clickable ? openName : null} />} tickLine={false} axisLine={false} width={120} />
+          <YAxis type="category" dataKey="name" tick={(p) => <LinkTick {...p} size={compact ? 10 : 11} onOpen={clickable ? openName : null} />} tickLine={false} axisLine={false} width={compact ? 88 : 120} />
           <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip row={(v) => [metric.format(v), metric.short]} hint={clickable ? (p) => ((p as Mark | undefined)?.to ? OPEN_HINT : null) : null} />} />
           <Bar dataKey="value" fill={SERIES[0]} radius={[0, 3, 3, 0]} isAnimationActive={false}>
             {data.map((d, i) => (

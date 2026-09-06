@@ -45,6 +45,12 @@ export interface WidgetInstance {
   y: number;
   w: number;
   h: number;
+  /**
+   * Position in the stacked (small-screen) order, where the grid gives way to
+   * a single reading order and widgets are moved up or down rather than
+   * dragged. Unset = the desktop reading order (top-left first).
+   */
+  order?: number;
   config: WidgetConfig;
 }
 

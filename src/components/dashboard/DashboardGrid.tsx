@@ -103,6 +103,29 @@ export default function DashboardGrid({
     setItems(next);
     saveNow(next);
   }
+  /**
+   * The stacked order: below 900px the grid gives way to one reading order.
+   * It is its own field (`order`) so moving a widget on a phone never
+   * disturbs the desktop layout; widgets without one follow the desktop
+   * reading order (top-left first) and new widgets land at the end.
+   */
+  const ordered = [...items]
+    .map((it, i) => ({ it, i }))
+    .sort((a, b) => (a.it.order ?? 1e6 + a.it.y * 100 + a.it.x) - (b.it.order ?? 1e6 + b.it.y * 100 + b.it.x) || a.i - b.i)
+    .map((x) => x.it);
+  const reading = ordered.map((it) => it.id);
+  function move(id: string, dir: -1 | 1) {
+    const i = reading.indexOf(id);
+    const j = i + dir;
+    if (i === -1 || j < 0 || j >= reading.length) return;
+    const seq = [...reading];
+    [seq[i], seq[j]] = [seq[j], seq[i]];
+    const pos = new Map(seq.map((k, n) => [k, n]));
+    const next = items.map((it) => ({ ...it, order: pos.get(it.id) ?? it.order }));
+    setItems(next);
+    saveNow(next);
+  }
+
   function submit(draft: WidgetDraft) {
     if (builderInitial) {
       const next = items.map((it) => (it.id === builderInitial.id ? { ...it, type: draft.type, title: draft.title, config: draft.config } : it));
@@ -182,9 +205,19 @@ export default function DashboardGrid({
                 resizeConfig={{ enabled: editing, handles: ['se'] as const }}
                 onLayoutChange={onLayoutChange}
               >
-                {items.map((it) => (
-                  <div key={it.id}>
-                    <WidgetView siteId={siteId} instance={it} range={range} editing={editing} onEdit={() => openEdit(it)} onDuplicate={() => duplicate(it)} onRemove={() => remove(it.id)} />
+                {ordered.map((it) => (
+                  <div key={it.id} data-type={it.type} data-wide={it.w >= 5 ? '1' : undefined}>
+                    <WidgetView
+                      siteId={siteId}
+                      instance={it}
+                      range={range}
+                      editing={editing}
+                      onEdit={() => openEdit(it)}
+                      onDuplicate={() => duplicate(it)}
+                      onRemove={() => remove(it.id)}
+                      onMove={(dir) => move(it.id, dir)}
+                      canMove={[reading.indexOf(it.id) > 0, reading.indexOf(it.id) < reading.length - 1]}
+                    />
                   </div>
                 ))}
               </GridLayout>

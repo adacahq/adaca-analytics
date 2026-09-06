@@ -6,7 +6,7 @@
  * mark into a navigation — to an entity page, or to the same page narrowed to
  * the clicked day, week or month.
  */
-import type { ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Text } from 'recharts';
 import type { Bucket } from '@/lib/dashboard/types';
@@ -17,6 +17,19 @@ export const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 
 export const axisTick = { fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--muted)' };
 
 const PERIOD_KEYS = ['range', 'from', 'to', 'compare'];
+
+/** True on phone-width viewports (≤640px), so charts can trade label room for plot room. */
+export function useCompact(): boolean {
+  const [compact, setCompact] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 640px)');
+    const update = () => setCompact(mq.matches);
+    update();
+    mq.addEventListener('change', update);
+    return () => mq.removeEventListener('change', update);
+  }, []);
+  return compact;
+}
 
 /** The period query to carry onto an entity page, from the current URL. */
 export function usePeriodQuery(): string {
