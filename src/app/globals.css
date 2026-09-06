@@ -1227,10 +1227,15 @@ select.field-input option { background: var(--bg); color: var(--fg); }
 .rank .rl.mono { font-family: var(--font-mono); font-size: 12px; }
 .dlink { color: inherit; text-decoration: none; }
 .dlink:hover, .dlink:focus-visible { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; }
-/* Back: the chevron alone, hung half out of the content edge so its stroke
-   lines up with the title below while the round hover halo overhangs into the
-   gutter. Paired with the eyebrow, which already names where it goes. */
-.backbtn { --bb-size: 26px; --bb-icon: 16px; flex: none; display: grid; place-items: center; width: var(--bb-size); height: var(--bb-size); margin-left: calc((var(--bb-icon) - var(--bb-size)) / 2 - 5px); border: none; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; transition: color 0.25s, background 0.25s; }
+/* Back: the chevron alone, to the left of the title. It is pulled left by the
+   dead space inside its own box — half the gap between halo and icon, plus the
+   glyph's inset inside the viewBox (7.5 of 24) — so the STROKE, not the round
+   hover halo, sits on the content edge; the eyebrow above and the lede below
+   keep one left edge and only the title steps in. The hang never exceeds the
+   16px `.wrap` padding at its narrowest, so nothing clips on a phone. */
+.title-row { display: flex; align-items: center; gap: 12px; }
+.title-row .view-title { min-width: 0; }
+.backbtn { --bb-size: 40px; --bb-icon: 22px; flex: none; display: grid; place-items: center; width: var(--bb-size); height: var(--bb-size); margin-left: calc((var(--bb-icon) - var(--bb-size)) / 2 - var(--bb-icon) * 0.3125); border: none; border-radius: 50%; background: none; color: var(--muted); cursor: pointer; transition: color 0.25s, background 0.25s; }
 .backbtn svg { width: var(--bb-icon); height: var(--bb-icon); }
 .backbtn:hover { color: var(--fg); background: var(--ghost); }
 .backbtn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
@@ -1303,7 +1308,6 @@ a.kpi:hover .kopen { opacity: 1; }
 @media (pointer: coarse) {
   .rank .rr { padding: 10px 10px; }
   .chart-head .muted-link { padding: 8px 6px; margin: -8px -2px; }
-  .backbtn { --bb-size: 34px; }
   .tbpanel a, .tbpanel .tbrow { padding-top: 11px; padding-bottom: 11px; }
   .pick { padding-top: 16px; padding-bottom: 16px; }
   .mcard .macts .muted-link { padding: 8px 0; }

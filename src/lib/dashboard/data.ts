@@ -25,7 +25,7 @@ export async function loadWidget(
     const data = await runWidgetQuery(site, type, config, range, segmentFor(params));
     return { ok: true, data };
   } catch (e) {
-    if (e instanceof GoogleApiError) return { ok: false, error: e.status === 429 ? 'Google quota reached; retrying soon' : `Google: ${e.message}` };
+    if (e instanceof GoogleApiError) return { ok: false, error: e.status === 429 ? 'Google quota reached. Retrying soon.' : `Google: ${e.message}` };
     return { ok: false, error: e instanceof Error ? e.message : 'Query failed' };
   }
 }

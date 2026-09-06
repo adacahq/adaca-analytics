@@ -30,7 +30,7 @@ export default function EntityKpis({ kpis }: { kpis: KpiItem[] }) {
                 <small>{caption}</small>
               </em>
             ) : k.previous !== null ? (
-              <em className="delta">— {caption}</em>
+              <em className="delta">– {caption}</em>
             ) : null}
           </div>
         );

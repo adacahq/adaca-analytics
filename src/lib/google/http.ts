@@ -12,9 +12,9 @@ export class GoogleApiError extends Error {
   /** Permission problems get a hint the operator can act on. */
   get hint(): string {
     if (this.status === 403 || this.status === 401) {
-      return 'Grant the service account access: Viewer on the GA4 property (Admin → Property access management), or the BigQuery roles for the export project.';
+      return 'Grant the service account access: the Viewer role on the GA4 property, under Admin, then Property access management, or the BigQuery roles on the export project.';
     }
-    if (this.status === 429) return 'Google API quota exhausted for this property; ingestion will resume on the next tick.';
+    if (this.status === 429) return 'Google API quota is exhausted for this property. Ingestion resumes on the next tick.';
     return '';
   }
 }

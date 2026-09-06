@@ -126,7 +126,7 @@ export function renderSlack(s: Summary): { text: string; blocks: unknown[] } {
   const blocks: unknown[] = [
     { type: 'header', text: { type: 'plain_text', text: `${s.siteName} · ${s.kind === 'weekly' ? 'week' : 'month'} of ${fmtDay(s.from)} to ${fmtDay(s.to)}` } },
     { type: 'section', fields: s.kpis.map((k) => ({ type: 'mrkdwn', text: `*${k.value}*${k.delta ? ` (${k.delta})` : ''}\n${k.label}` })) },
-    ...s.tops.map((t) => ({ type: 'section', text: { type: 'mrkdwn', text: `*${t.label}*\n${t.rows.map((r) => `${r.key} — ${r.value}`).join('\n') || '–'}` } })),
+    ...s.tops.map((t) => ({ type: 'section', text: { type: 'mrkdwn', text: `*${t.label}*\n${t.rows.map((r) => `${r.key} · ${r.value}`).join('\n') || '–'}` } })),
   ];
   if (s.url) blocks.push({ type: 'section', text: { type: 'mrkdwn', text: `<${s.url}|Open the dashboard for this period>` } });
   return { text, blocks };

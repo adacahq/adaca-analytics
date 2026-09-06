@@ -39,7 +39,7 @@ export default async function IngestionPage() {
   return (
     <div>
       <SubHead title="Ingestion">
-        Daily rollups are pulled in bounded units: the cron ticks every 15 minutes, this page pumps the queue faster while it is open, and every site is refreshed hourly for its trailing three days.
+        Daily rollups arrive in small units. The cron runs every 15 minutes, this page works the queue faster while it is open, and every site is refreshed hourly for its trailing three days.
       </SubHead>
 
       {progress.length > 0 ? (
@@ -69,13 +69,13 @@ export default async function IngestionPage() {
         {sites.length === 0 ? (
           <div className="empty">
             <span className="zone-label">Ingestion</span>
-            <p>Add a site first.</p>
+            <p>Add a site to start ingesting.</p>
           </div>
         ) : null}
       </div>
 
       <h3 className="mt-10" style={{ fontSize: 15, fontWeight: 500 }}>
-        Recent runs
+        Recent Runs
       </h3>
       <div className="only-sm mt-3">
         {runs.slice(0, 20).map((r) => (
@@ -133,7 +133,7 @@ export default async function IngestionPage() {
                 <td className="mono">{r.kind}</td>
                 <td className="mono">{scopeLabel(r.scope)}</td>
                 <td className="mono">
-                  {fmtDay(r.from_date)} → {fmtDay(r.to_date)}
+                  {fmtDay(r.from_date)} to {fmtDay(r.to_date)}
                 </td>
                 <td>
                   <span className={STATUS_PILL[r.status] ?? 'pill'}>{r.status}</span>
@@ -144,8 +144,8 @@ export default async function IngestionPage() {
                 <td className="mono" style={{ textAlign: 'right' }}>
                   {fmtInt(r.rows_written)}
                 </td>
-                <td className="mono">{r.started_at ? fmtInstant(r.started_at) : '—'}</td>
-                <td className="mono">{r.finished_at ? fmtInstant(r.finished_at) : '—'}</td>
+                <td className="mono">{r.started_at ? fmtInstant(r.started_at) : '–'}</td>
+                <td className="mono">{r.finished_at ? fmtInstant(r.finished_at) : '–'}</td>
                 <td style={{ color: 'var(--crit)', maxWidth: 360, fontSize: 12 }}>{r.error ?? ''}</td>
               </tr>
             ))}

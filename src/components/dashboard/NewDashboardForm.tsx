@@ -35,7 +35,7 @@ export default function NewDashboardForm() {
           <button type="button" className={`card pick${template === null ? ' on' : ''}`} onClick={() => setTemplate(null)}>
             <h3>Blank</h3>
             <p className="text-[12.5px] mt-1.5" style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-              An empty board. Add widgets one at a time.
+              An empty dashboard. Add widgets one at a time.
             </p>
           </button>
           {TEMPLATES.map((t) => (

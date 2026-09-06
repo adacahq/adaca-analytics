@@ -214,7 +214,7 @@ export function resolveRange(params: RangeParams, today: string, opts: RangeOpti
   if (isIsoDay(params.from) && isIsoDay(params.to)) {
     const from = params.from <= params.to ? params.from : params.to;
     const to = params.from <= params.to ? params.to : params.from;
-    return { key: 'custom', from, to, ...parseCompare(params.compare, { from, to }), label: `${from} → ${to}` };
+    return { key: 'custom', from, to, ...parseCompare(params.compare, { from, to }), label: `${from} to ${to}` };
   }
   const preset = PRESETS.find((p) => p.key === params.range) ?? PRESETS.find((p) => p.key === DEFAULT_RANGE)!;
   const { from, to } = presetBounds(preset.key, today, opts);

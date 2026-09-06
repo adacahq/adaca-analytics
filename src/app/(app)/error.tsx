@@ -7,13 +7,13 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
         className="mono"
         style={{ fontSize: 10, letterSpacing: '0.12em', color: 'var(--crit)', textTransform: 'uppercase' }}
       >
-        Something went wrong
+        Error
       </span>
       <h1 className="mt-3" style={{ fontSize: 24, fontWeight: 500 }}>
-        Couldn&rsquo;t load this page
+        This Page Did Not Load
       </h1>
       <p className="mt-2 text-[14px]" style={{ color: 'var(--muted)' }}>
-        {error.message || 'An unexpected error occurred.'}
+        {error.message || 'The server returned an error without a message.'}
       </p>
       <button type="button" className="btn btn-ghost btn-sm mt-6" onClick={reset}>
         Try again

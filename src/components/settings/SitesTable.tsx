@@ -88,13 +88,13 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
         <span className="pill">{s.primary_source === 'bigquery' ? 'BigQuery' : 'GA4 API'}</span>
       ),
     },
-    { key: 'property', header: 'Property', mono: true, cell: (s) => s.ga_property_id ?? '—' },
+    { key: 'property', header: 'Property', mono: true, cell: (s) => s.ga_property_id ?? '–' },
     { key: 'tz', header: 'Timezone', mono: true, cell: (s) => s.timezone },
     {
       key: 'data',
       header: 'Data',
       mono: true,
-      cell: (s) => (s.span.from ? `${fmtDay(s.span.from)} → ${fmtDay(s.span.to!)}` : 'none yet'),
+      cell: (s) => (s.span.from ? `${fmtDay(s.span.from)} to ${fmtDay(s.span.to!)}` : 'none yet'),
     },
     { key: 'rows', header: 'Rows', align: 'right', mono: true, cell: (s) => s.rows.toLocaleString(), sortValue: (s) => s.rows },
     { key: 'drilldown', header: 'Drill-down', cell: (s) => <span className={s.drilldown === 1 ? 'pill ok' : 'pill'}>{s.drilldown === 1 ? 'on' : 'off'}</span> },
@@ -156,7 +156,7 @@ export default function SitesTable({ sites }: { sites: Row[] }) {
       <Modal
         open={!!editing}
         onClose={() => setEditing(null)}
-        title={editing ? `Edit ${editing.name}` : 'Edit site'}
+        title={editing ? `Edit ${editing.name}` : 'Edit Site'}
         maxWidth={560}
         footer={
           <>

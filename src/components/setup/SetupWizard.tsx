@@ -125,14 +125,14 @@ export default function SetupWizard({ credentials, properties, propertiesError, 
                   </div>
                 </div>
                 <p className="text-[13.5px]" style={{ color: 'var(--muted)', lineHeight: 1.65 }}>
-                  Give this address <b>Viewer</b> access on every GA4 property you want here (GA Admin → Property access management). For a BigQuery export, also grant it BigQuery Job User on the project and BigQuery Data Viewer on the dataset.
+                  Give this address <b>Viewer</b> access on every GA4 property you want here, under <b>Admin</b>, then <b>Property access management</b>, in Google Analytics. For a BigQuery export, also grant it BigQuery Job User on the jobs project and BigQuery Data Viewer on the dataset.
                 </p>
               </>
             ) : (
               <>
                 <div className="alert error">{credentials.error}</div>
                 <p className="text-[13.5px]" style={{ color: 'var(--muted)', lineHeight: 1.65 }}>
-                  Create a service account in Google Cloud, download its JSON key, and set it as the <span className="mono">GOOGLE_SERVICE_ACCOUNT_JSON</span> secret (locally: <span className="mono">.dev.vars</span>). Then reload this page.
+                  Create a service account in Google Cloud, download its JSON key, and store it as the <span className="mono">GOOGLE_SERVICE_ACCOUNT_JSON</span> secret, or in <span className="mono">.dev.vars</span> locally. Then reload this page.
                 </p>
               </>
             )}
@@ -158,7 +158,7 @@ export default function SetupWizard({ credentials, properties, propertiesError, 
               <>
                 {propertiesError ? <div className="alert error">{propertiesError}</div> : null}
                 {properties && properties.length > 0 ? (
-                  <Field label="Property" hint="Every property the service account can see. Missing one? Grant it Viewer access, then reload.">
+                  <Field label="Property" hint="Every property the service account can see. If one is missing, grant the account Viewer access on it and reload.">
                     <Select
                       fullWidth
                       value={propertyId}
@@ -166,37 +166,37 @@ export default function SetupWizard({ credentials, properties, propertiesError, 
                       ariaLabel="Property"
                       options={[
                         ...properties.map((p) => ({ value: p.id, label: `${p.displayName} · ${p.accountName} · ${p.id}` })),
-                        { value: '__manual', label: 'Enter a property id manually…', dividerBefore: true },
+                        { value: '__manual', label: 'Enter a property id by hand', dividerBefore: true },
                       ]}
                     />
                   </Field>
                 ) : (
                   <p className="text-[13.5px]" style={{ color: 'var(--muted)' }}>
-                    No properties are visible to the service account yet. Grant it Viewer access in GA, or enter the id below.
+                    The service account cannot see any properties yet. Grant it Viewer access in Google Analytics, or enter a property id below.
                   </p>
                 )}
                 {(propertyId === '__manual' || !properties?.length) && (
-                  <Field label="Property id" hint="GA Admin → Property settings → Property ID (numeric).">
+                  <Field label="Property id" hint="The numeric id under Admin, then Property settings, in Google Analytics.">
                     <input value={manualId} onChange={(e) => setManualId(e.target.value)} placeholder="351349891" inputMode="numeric" />
                   </Field>
                 )}
-                <Field label="Site name" hint="Optional — defaults to the property's name.">
+                <Field label="Site name" hint="Optional. Defaults to the property's name.">
                   <input value={name} onChange={(e) => setName(e.target.value)} placeholder={chosen?.displayName ?? 'My site'} />
                 </Field>
               </>
             ) : (
               <>
                 <p className="text-[13.5px]" style={{ color: 'var(--muted)', lineHeight: 1.65 }}>
-                  A site fed only by a GA4 BigQuery export — no realtime view. Try it with Google's public sample:{' '}
+                  A site read from a GA4 BigQuery export alone. It has no realtime view. Try it with Google's public sample:{' '}
                   <span className="mono">bigquery-public-data.ga4_obfuscated_sample_ecommerce</span>.
                 </p>
                 <Field label="Site name">
                   <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Sample store" />
                 </Field>
-                <Field label="Reporting timezone" hint="IANA name, e.g. Australia/Sydney. Hour-of-day rollups use it.">
+                <Field label="Reporting timezone" hint="An IANA zone name such as Australia/Sydney. Hour-of-day rollups use it.">
                   <input value={timezone} onChange={(e) => setTimezone(e.target.value)} />
                 </Field>
-                <Field label="Key events" hint="Comma-separated event names counted as conversions.">
+                <Field label="Key events" hint="Event names counted as conversions, separated by commas.">
                   <input value={keyEvents} onChange={(e) => setKeyEvents(e.target.value)} />
                 </Field>
               </>
@@ -216,10 +216,10 @@ export default function SetupWizard({ credentials, properties, propertiesError, 
           <div className="flex flex-col gap-5">
             <p className="text-[13.5px]" style={{ color: 'var(--muted)', lineHeight: 1.65 }}>
               {mode === 'ga4'
-                ? 'Optional. If this property exports to BigQuery, daily rollups can come from the export instead of the Data API (no sampling, no API quota). Realtime stays on GA.'
+                ? 'Optional. If this property exports to BigQuery, daily rollups can come from the export instead of the Data API, with no sampling and no API quota. Realtime stays on Google Analytics.'
                 : 'The export dataset to read. The jobs project is billed for the queries.'}
             </p>
-            <Field label="Jobs project" hint="The Google Cloud project that runs (and pays for) the queries.">
+            <Field label="Jobs project" hint="The Google Cloud project that runs the queries and is billed for them.">
               <input value={bqProject} onChange={(e) => setBqProject(e.target.value)} placeholder="my-gcp-project" />
             </Field>
             <Field label="Dataset" hint="analytics_<property id>, or project.dataset for a dataset in another project.">
@@ -231,7 +231,7 @@ export default function SetupWizard({ credentials, properties, propertiesError, 
               </button>
               {bqTest ? (
                 <span className="mono-micro" style={{ color: 'var(--ok)' }}>
-                  {bqTest.tables} day tables · {bqTest.first} → {bqTest.last}
+                  {bqTest.tables} day tables · {bqTest.first} to {bqTest.last}
                 </span>
               ) : null}
             </div>
@@ -264,7 +264,7 @@ export default function SetupWizard({ credentials, properties, propertiesError, 
                 />
               </Field>
             ) : (
-              <Field label="Window" hint={`Days to ingest from the export${bqTest?.first ? ` (available ${bqTest.first} → ${bqTest.last})` : ''}. Each family is one query per 31-day chunk; the jobs project is billed for scanned bytes.`}>
+              <Field label="Window" hint={`Days to ingest from the export${bqTest?.first ? `. Available: ${bqTest.first} to ${bqTest.last}` : ''}. Each report family is one query per 31-day chunk, and the jobs project is billed for the bytes scanned.`}>
                 <div className="flex flex-wrap items-center gap-2">
                   <DatePicker value={from} onChange={setFrom} ariaLabel="From" />
                   <span className="mono-micro">to</span>

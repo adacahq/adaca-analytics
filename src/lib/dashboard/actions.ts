@@ -75,7 +75,7 @@ export async function deleteDashboardAction(id: string): Promise<Result> {
   try {
     const d = await byId(id);
     if (!d) return { ok: false, error: 'Dashboard not found' };
-    if (d.kind !== 'custom') return { ok: false, error: 'Default dashboards are reset, not deleted.' };
+    if (d.kind !== 'custom') return { ok: false, error: 'A default dashboard cannot be deleted. Reset it to its template instead.' };
     await deleteDashboard(id);
     revalidatePath('/', 'layout');
     return { ok: true, data: undefined };

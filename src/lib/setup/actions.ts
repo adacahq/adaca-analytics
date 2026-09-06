@@ -35,7 +35,7 @@ export async function createGa4Site(input: {
 }): Promise<ActionResult<{ siteId: string }>> {
   try {
     const id = input.propertyId.replace(/^properties\//, '').trim();
-    if (!/^\d+$/.test(id)) return { ok: false, error: 'A GA4 property id is numeric (e.g. 351349891).' };
+    if (!/^\d+$/.test(id)) return { ok: false, error: 'A GA4 property id is a number, such as 351349891.' };
     const prop = await getProperty(id);
     const bq = Boolean(input.bqProject && input.bqDataset);
     const site = await createSite({

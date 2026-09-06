@@ -249,7 +249,7 @@ export async function pump(opts: { siteId?: string; budgetMs?: number; maxUnits?
           break;
         }
       } catch (e) {
-        const msg = e instanceof GoogleApiError ? `${e.message}${e.hint ? ` — ${e.hint}` : ''}` : e instanceof Error ? e.message : String(e);
+        const msg = e instanceof GoogleApiError ? `${e.message}${e.hint ? ` ${e.hint}` : ''}` : e instanceof Error ? e.message : String(e);
         // Quota exhaustion is transient: leave the run queued for the next tick.
         if (e instanceof GoogleApiError && e.status === 429) {
           summary.failed.push({ id: run.id, error: 'quota; will retry' });

@@ -11,7 +11,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     <div>
       <h1 className="view-title rv">Settings</h1>
       <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>
-        Sites, ingestion runs, scheduled reports, appearance and what this deployment is.
+        The sites this deployment reads, the ingestion runs that fill it, the reports it sends, how its charts look, and what it is.
       </p>
       <div className="rv mt-6" style={{ '--i': 1 } as CSSProperties}>
         <TabLinks

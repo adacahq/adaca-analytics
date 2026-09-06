@@ -78,7 +78,7 @@ function KpiBody({ value, previous, spark, metric, live, href }: { value: number
             <small>{caption}</small>
           </span>
         ) : previous !== null ? (
-          <span className="delta">— {caption}</span>
+          <span className="delta">– {caption}</span>
         ) : null}
         {href ? <span className="kopen">open ↗</span> : null}
       </div>
@@ -345,7 +345,7 @@ export function TableBody({ columns, rows, href }: { columns: { key: string; lab
 
 /* ── Note ────────────────────────────────────────────────────────── */
 function NoteBody({ markdown }: { markdown: string }) {
-  if (!markdown.trim()) return <Centered>Empty note — edit to add text.</Centered>;
+  if (!markdown.trim()) return <Centered>This note is empty. Edit the widget to add text.</Centered>;
   return (
     <div className="docs-prose wnote" style={{ fontSize: 13.5 }}>
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{markdown}</ReactMarkdown>

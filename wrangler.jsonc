@@ -25,8 +25,8 @@
   ],
   "kv_namespaces": [{ "binding": "CACHE", "id": "adaca-analytics-cache" }],
   // Ingestion pump: every tick advances at most one bounded unit of work per
-  // site (a report family × ≤31-day chunk) and enqueues the once-a-day
-  // rollup refresh. Cheap when idle: one D1 read.
+  // site (a report family × ≤31-day chunk) and queues the hourly refresh
+  // of each site's trailing three days. Cheap when idle: one D1 read.
   "triggers": { "crons": ["*/15 * * * *"] },
   "observability": { "enabled": true }
 }

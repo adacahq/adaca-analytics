@@ -4,11 +4,10 @@ import type { CSSProperties } from 'react';
 import { useRouter } from 'next/navigation';
 
 /**
- * Eyebrow (the kind), the value as the title, and a lede with site, period
- * and share. The back control is the chevron beside the eyebrow: the icon
- * points at the parent the eyebrow already names, so the pair reads as one
- * "back to Source / medium" and the title below stays flush with the lede
- * and the cards.
+ * Eyebrow (the kind), the value as the title with the back control beside it,
+ * and a lede with site, period and share. The chevron is hung by its own
+ * stroke, not its hover halo, so the eyebrow above and the lede below still
+ * read as one left edge and only the title steps in.
  */
 export default function EntityHeader({ kindLabel, title, mono, lede }: { kindLabel: string; title: string; mono: boolean; lede: string }) {
   const router = useRouter();
@@ -19,16 +18,18 @@ export default function EntityHeader({ kindLabel, title, mono, lede }: { kindLab
   return (
     <div>
       <div className="eyebrow-row rv">
+        <span className="eyebrow">{kindLabel}</span>
+      </div>
+      <div className="title-row rv" style={{ '--i': 1 } as CSSProperties}>
         <button type="button" className="backbtn" onClick={back} aria-label={`Back to ${kindLabel}`}>
           <svg viewBox="0 0 24 24" aria-hidden>
             <path d="M15 4.5L7.5 12l7.5 7.5" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
-        <span className="eyebrow">{kindLabel}</span>
+        <h1 className={mono ? 'view-title mono' : 'view-title'} style={{ overflowWrap: 'anywhere' }}>
+          {title}
+        </h1>
       </div>
-      <h1 className={mono ? 'view-title mono rv' : 'view-title rv'} style={{ '--i': 1, overflowWrap: 'anywhere' } as CSSProperties}>
-        {title}
-      </h1>
       <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>
         {lede}
       </p>
