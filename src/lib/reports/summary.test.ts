@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { renderEmail, renderSlack, summaryPeriod, summarySubject, type Summary } from './summary';
+import { renderEmail, renderSlack, summaryPeriod, summarySubject, type Summary } from './summary-render';
 
 const FIXTURE: Summary = {
   kind: 'weekly',
