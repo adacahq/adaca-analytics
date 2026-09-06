@@ -530,9 +530,10 @@ then `wrangler deploy` with the generated config in `dist/server/wrangler.json`.
 
 ## 18. About Adaca
 
-Adaca is a software consultancy. We build custom software, embed senior engineers in
-client teams, and put AI to work across Australia and New Zealand. Adaca Analytics is
-open-source software we maintain and release under the MIT licence.
+[Adaca](https://adaca.com) is a software consultancy. We build custom software, embed
+senior engineers in client teams, and put AI to work for our clients. Adaca Analytics
+is open-source software we maintain and release under the MIT licence. Find us at
+[adaca.com](https://adaca.com).
 
 Issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md).
 
