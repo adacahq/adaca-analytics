@@ -11,6 +11,9 @@ interface AppSecrets {
   /** Optional Basic Auth gate (both must be set to enable it). */
   BASIC_AUTH_USERNAME?: string;
   BASIC_AUTH_PASSWORD?: string;
+  /** Optional email delivery for reports: a Resend API key and the sender address. */
+  RESEND_API_KEY?: string;
+  REPORT_FROM?: string;
 }
 
 declare namespace Cloudflare {

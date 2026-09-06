@@ -1304,3 +1304,17 @@ kbd.kb { display: inline-block; margin-left: 8px; padding: 0 5px; min-width: 16p
 .explore .tools .field { flex: 1; min-width: 200px; max-width: 360px; }
 .explore .tscroll { max-height: min(72vh, 900px); overflow: auto; }
 .explore .dtable thead th { position: sticky; top: 0; z-index: 1; background: var(--card); }
+
+/* ── Shared dashboards: the app's topbar and page, no rail ── */
+.share-root { --sb-w: 0px; }
+.share-root .tb { left: 0; }
+.share-root main.page { margin-left: 0; }
+.share-root.embed .tb { display: none; }
+.share-root.embed main.page { padding-top: 0; }
+.share-root.embed .wrap { padding-top: 28px; padding-bottom: 48px; }
+.share-brand { display: inline-flex; align-items: center; gap: 10px; margin-right: 6px; }
+.share-brand img { display: block; height: 20px; width: auto; }
+.share-brand > span { font-family: var(--font-mono); font-size: 9px; line-height: 1; letter-spacing: 0.18em; color: var(--muted); text-transform: uppercase; padding: 4px 5px 4px 7px; border: 1px solid var(--line); border-radius: 6px; }
+.sharerow { padding: 14px 16px; }
+.sharerow input, .sharerow textarea { font-family: var(--font-mono); font-size: 12px; }
+@media (max-width: 640px) { .share-brand > span { display: none; } }

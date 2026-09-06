@@ -39,6 +39,11 @@ export async function getDashboard(slug: string): Promise<Dashboard | null> {
   return row ? parse(row) : null;
 }
 
+export async function getDashboardById(id: string): Promise<Dashboard | null> {
+  const row = await db().prepare(`SELECT ${COLS} FROM dashboards WHERE id = ? AND deleted_at IS NULL`).bind(id).first<Row>();
+  return row ? parse(row) : null;
+}
+
 export async function countDashboards(): Promise<number> {
   const r = await db().prepare('SELECT COUNT(*) AS n FROM dashboards WHERE deleted_at IS NULL').first<{ n: number }>();
   return r?.n ?? 0;

@@ -9,20 +9,18 @@
  *     BASIC_AUTH_USERNAME + BASIC_AUTH_PASSWORD as secrets to enable it, or
  *     leave both unset and protect the worker with Cloudflare Access instead
  *     (README → "Protecting your deployment"). `/api/health` stays open so
- *     uptime checks and Access bypass rules have something to hit.
+ *     uptime checks and Access bypass rules have something to hit; shared
+ *     dashboards (`/share/*`) and their data route are open by design.
  *
  * Every response carries `X-Robots-Tag: noindex` — an analytics console is
  * never something to index.
  */
 import handler from 'vinext/server/fetch-handler';
 import { runScheduled } from '../src/lib/analytics/scheduled';
+import { isOpenPath } from '../src/lib/gate';
 
 const AUTH_REALM = 'Adaca Analytics';
 const NOINDEX = 'noindex, nofollow, noarchive, nosnippet';
-
-function isOpenPath(path: string): boolean {
-  return path === '/api/health' || path === '/robots.txt' || path === '/favicon.ico';
-}
 
 function gateEnabled(env: Env): boolean {
   return Boolean(env.BASIC_AUTH_USERNAME || env.BASIC_AUTH_PASSWORD);
@@ -68,7 +66,7 @@ function withNoIndex(response: Response): Response {
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    if (!isOpenPath(url.pathname) && gateEnabled(env) && !isAuthorized(request, env)) {
+    if (!isOpenPath(url.pathname, request.method) && gateEnabled(env) && !isAuthorized(request, env)) {
       return unauthorized();
     }
     const response = await handler.fetch(request, env, ctx);

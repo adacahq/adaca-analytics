@@ -4,18 +4,20 @@ import { useState, useTransition } from 'react';
 import { usePathname } from 'next/navigation';
 import { toast } from 'sonner';
 import Modal from '@/components/ui/Modal';
+import ShareModal from './ShareModal';
 import { useConfirm } from '@/components/ui/Confirm';
 import { usePanel } from '@/layouts/App/usePanel';
 import { deleteDashboardAction, duplicateDashboardAction, renameDashboardAction, resetDashboardAction } from '@/lib/dashboard/actions';
 import { dashboardHref } from '@/lib/nav';
 import type { Dashboard, WidgetInstance } from '@/lib/dashboard/types';
 
-/** The dashboard's overflow: reset to template, duplicate, rename, delete. */
+/** The dashboard's overflow: reset to template, duplicate, share, rename, delete. */
 export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashboard; onReset: (layout: WidgetInstance[]) => void }) {
   const pathname = usePathname() ?? '/';
   const confirm = useConfirm();
   const { ref, open, toggle, close } = usePanel<HTMLDivElement>(pathname);
   const [renaming, setRenaming] = useState(false);
+  const [sharing, setSharing] = useState(false);
   const [name, setName] = useState(dashboard.name);
   const [pending, startTransition] = useTransition();
 
@@ -80,6 +82,17 @@ export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashb
           <button type="button" className="tbrow" role="menuitem" onClick={duplicate}>
             Duplicate
           </button>
+          <button
+            type="button"
+            className="tbrow"
+            role="menuitem"
+            onClick={() => {
+              close();
+              setSharing(true);
+            }}
+          >
+            Share…
+          </button>
           {dashboard.kind === 'custom' ? (
             <>
               <button
@@ -102,6 +115,7 @@ export default function DashboardMenu({ dashboard, onReset }: { dashboard: Dashb
           ) : null}
         </div>
       ) : null}
+      <ShareModal open={sharing} onClose={() => setSharing(false)} dashboard={dashboard} />
       <Modal
         open={renaming}
         onClose={() => setRenaming(false)}

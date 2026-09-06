@@ -34,10 +34,15 @@ tables and notes — on a drag-and-drop grid.
 6. [BigQuery export](#bigquery-export)
 7. [Dashboards and widgets](#dashboards-and-widgets)
 8. [Drill-down](#drill-down)
-9. [Local development](#local-development)
-10. [Deploying by hand](#deploying-by-hand)
-11. [Architecture](#architecture)
-12. [Limits and caveats](#limits-and-caveats)
+9. [Period, comparison and shortcuts](#period-comparison-and-shortcuts)
+10. [Filters and segments](#filters-and-segments)
+11. [Explore and export](#explore-and-export)
+12. [Sharing](#sharing)
+13. [Reports and alerts](#reports-and-alerts)
+14. [Local development](#local-development)
+15. [Deploying by hand](#deploying-by-hand)
+16. [Architecture](#architecture)
+17. [Limits and caveats](#limits-and-caveats)
 
 ---
 
@@ -115,6 +120,17 @@ small team; use Access for anything more.
 Every response also carries `X-Robots-Tag: noindex`, and `robots.txt` disallows
 everything, so an unprotected deployment at least stays out of search engines.
 
+### Shared dashboards pass the gate
+
+Share links (**More → Share…** on any dashboard, see [Sharing](#sharing)) are for
+people without access: `/share/<token>` and its data route `/api/share/*` are open by
+design, together with the client assets under `/_next/*` and the logo and favicon
+files. The built-in Basic Auth gate already lets those through, for GET only, so
+nothing can be changed through a share URL. With Cloudflare Access, add a **Bypass**
+policy for the paths `/share/*`, `/api/share/*`, `/_next/*`, `/logo.svg`,
+`/logo-white.svg`, `/favicon.png` and `/apple-touch-icon.png`. Revoking a link closes
+it immediately.
+
 ## 3. First run
 
 The wizard has four steps:
@@ -139,7 +155,7 @@ the topbar.
 
 ## How the numbers are made
 
-Every site is ingested into the same fifteen **report families** — one row per day
+Every site is ingested into the same twenty **report families** — one row per day
 per dimension value:
 
 | Family | Dimension(s) | Feeds |
@@ -156,7 +172,15 @@ per dimension value:
 | `browser`, `language`, `screen` | one each | Browsers, Languages, Screen resolutions |
 | `user_type` | new vs returning | New vs returning |
 | `event` | event name, is key event | Events, Key events |
-| `hour` | hour of day | Hour of day (weekday comes from `totals`) |
+| `hour` | hour of day | Hour of day (weekday comes from `totals`); the hourly trend of Today / Yesterday |
+| `region` | country, region | Regions |
+| `utm_content`, `utm_term` | ad content / term, campaign | Ad content, Terms |
+| `os_version` | OS, version | OS versions |
+| `host` | hostname | Hostnames |
+
+A site backfilled before a family existed shows **Add N new reports** on
+**Settings → Ingestion**, which ingests only the missing families over the days the
+site already holds.
 
 Sites with **drill-down** on (the default) are also ingested into seventeen **pair
 families**, two dimensions per row, which power the detail pages and the "by"
@@ -282,6 +306,92 @@ The pair families are also builder datasets — *Pages by source*, *Sources by p
 landing page*… — where a filter on the other dimension narrows them ("Pages by source"
 + *Source / medium is google / organic*).
 
+## Period, comparison and shortcuts
+
+The **Period** control offers Today, Yesterday, the last 7 / 28 / 90 days, this month,
+last month, year to date, the last 12 months, all time (from the site's first day) and
+a custom span. Every preset has a one-letter shortcut, shown beside it — D, E, W, T,
+Q, M, P, Y, L, A — X toggles the comparison and C opens the custom fields. **Compare**
+puts a second window behind every widget: the period before (the default), the same
+dates a year earlier, or any window you choose; deltas and dashed lines follow, and
+every caption says which ("vs prev", "vs last year", "vs period"). The URL carries all
+of it (`?range=7d&compare=yoy`, `?from=…&to=…&compare=2025-08-01..2025-08-28`), so a
+link reproduces the view.
+
+Site-wide totals over a day or two chart **by the hour**: Today and Yesterday show an
+hourly line (today up to the current hour), read from the hour-of-day family the site
+already holds; a widget can also ask for hours in *Group by*. The **live count** in
+the topbar — people on the site in the last 30 minutes — is on every screen and opens
+the Realtime dashboard.
+
+## Filters and segments
+
+**Filter** in the topbar applies one condition to a whole dashboard: a dimension
+(source, medium, source / medium, channel, campaign, referrer, page, landing page,
+country, device, event — and any other entity kind, for totals and trends), an
+operator (is, is not, contains, does not contain) and a value, with suggestions from
+the site's own data. It lives in the URL (`?seg=source:eq:google`) so links keep it,
+and **Save as segment** keeps it by name for everyone on the deployment.
+
+Segments are served from stored rollups, never a live call. Totals, KPI tiles and
+trends read the segment's own family, so they are exact. A ranked widget follows the
+filter when its dimension is stored together with the filter's — on its own family
+(Sources under a medium filter, Pages under a title filter, Countries under a city
+filter) or on a pair family (Landing pages under a channel filter reads channel ×
+landing page; Sources under a landing-page filter reads source / medium × landing
+page and splits the source out). A widget with no stored pair for the combination
+says so in place of its numbers ("Channel is not stored together with referrer")
+rather than showing unfiltered data. Realtime widgets are never filtered and say so in
+their caption. The site-wide Visitors tile stays exact under a filter: the same GA
+lookup carries the filter as a dimension filter. Detail pages ignore the filter — they
+are already one dimension — and say so.
+
+## Explore and export
+
+**See all** on any card (and *top N · see all* on any breakdown of a detail page) opens
+`/explore/<dataset>`: every row for the period (up to 500), every metric of the
+dataset, a share column on the lead metric, search, column sorting and a **CSV
+download**. The page honours the dashboard filter and a widget's own filters, and its
+rows drill like a dashboard's.
+
+## Sharing
+
+**More → Share…** on any dashboard creates a read-only link, `/share/<token>`, for the
+current site: no rail, no filter control, no drill-down, nothing to change. A link can
+**lock the period** to the current one and **pin the current filter**, which is how a
+slice of the data is shared without the rest; otherwise the reader chooses the period.
+**Embed** gives an `<iframe>` snippet (`?embed=1` hides the bar). Revoke a link and it
+stops resolving at once. Widgets on a shared page load through
+`/api/share/<token>/widget`, which serves that dashboard for that site and nothing
+else; see *Protecting your deployment* for what the gate lets through.
+
+## Reports and alerts
+
+**Settings → Reports** schedules deliveries by **email** or to a **Slack** channel:
+
+- **Weekly summary** — every Monday after 08:00 site time: last week's visitors,
+  visits, pageviews, engagement rate, average engagement time and key events with
+  deltas against the week before, the top pages, sources and countries, and a link
+  to the dashboard for that period.
+- **Monthly summary** — the same on the 1st, for the month before.
+- **Traffic spike alert** — when the live visitor count reaches a threshold; at most
+  once every 12 hours.
+- **Traffic drop alert** — when visits in the last 12 hours fall below a threshold
+  (from the hourly family the refresh keeps current); checked hourly, at most once
+  every 12 hours.
+
+The cron delivers them; nothing needs to be open. **Send now** delivers a report
+immediately, which is how to check a channel works; each report shows its last
+delivery or error. Slack needs only an incoming-webhook URL. Email goes through
+[Resend](https://resend.com) — set two secrets and the email channel switches on:
+
+```
+npx wrangler secret put RESEND_API_KEY
+npx wrangler secret put REPORT_FROM     # a sender on a domain verified in Resend
+```
+
+Links in reports use the address the app was last opened at.
+
 ## Local development
 
 ```
@@ -330,8 +440,9 @@ npm run deploy                             # build, apply migrations, deploy
   handler to add the cron handler and the optional Basic Auth gate.
 - **D1** holds `sites`, `dashboards` (widget layouts as JSON), `rollups` (the fact
   table, composite key `site · report · date · key1 · key2`, with a reverse index on
-  `key2` so both directions of a pair family are fast), `ingest_runs` and `settings`.
-  Migrations live in `migrations/`.
+  `key2` so both directions of a pair family are fast), `ingest_runs`, `segments`
+  (saved filters), `shares` (share links), `reports` (scheduled deliveries) and
+  `settings`. Migrations live in `migrations/`.
 - **KV** caches Google access tokens (55 min), realtime reports (30 s), exact-uniques
   lookups (10 min) and the property list.
 - **Ingestion** is bounded-unit pumping: a run is cut into units (one report family ×
@@ -341,7 +452,14 @@ npm run deploy                             # build, apply migrations, deploy
   live GA realtime call; results are render-ready shapes (`kpi`, `timeseries`,
   `ranked`, `table`). Detail pages go through `src/lib/analytics/drill.ts`, which
   batches every statement for a page into one D1 call; `entities.ts` is the registry
-  of entity kinds and their breakdowns.
+  of entity kinds and their breakdowns; `segments.ts` resolves a dataset under the
+  dashboard filter to the family and keys that answer it. Explore pages
+  (`/explore/<dataset>`) run the same engine as a 500-row table.
+- **Sharing and reports**: `/share/<token>` renders a dashboard read-only outside the
+  app shell, fed by `/api/share/<token>/widget`; `src/lib/gate.ts` is the one rule for
+  what the Basic Auth gate lets through. `src/lib/reports/` builds the weekly /
+  monthly summaries and alerts, delivers them (Resend, Slack webhooks) and runs from
+  the cron tick after the ingestion pump.
 - **Design system**: the Canvas system shared with Adaca's other apps — `src/app/
   globals.css` is the single source of truth; see `docs/design-system.md`.
 
@@ -360,6 +478,15 @@ npm run deploy                             # build, apply migrations, deploy
   for BigQuery-fed sites.
 - Timezones: rollup dates are the property's reporting timezone (read from GA at
   setup, editable per site); "Today" is today there.
+- **One filter at a time.** Two conditions together (source *and* country) would need
+  three-dimension rollups, which are not stored; a widget whose dimension has no pair
+  with the filter's says so. Filters on city, OS, browser, language, screen, visitor
+  type, hour, region, ad content, term, OS version and hostname narrow totals and
+  trends only.
+- **Hours exist for site-wide totals only**; every other family is daily, so there is
+  no "last 24 hours" period and no hourly breakdown by page or source.
+- **Drop alerts** depend on the hourly refresh: they check only while the site was
+  ingested up to yesterday or today.
 
 ## Licence
 

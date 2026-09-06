@@ -7,11 +7,27 @@ import { loadWidget } from '@/lib/dashboard/data';
 import { WIDGET_BY_TYPE } from '@/lib/dashboard/widgets';
 import { DATASET_BY_KEY, exploreHref } from '@/lib/analytics/catalog';
 import { usePeriodQuery } from './chart-helpers';
+import { useShare } from './ShareContext';
 import { METRIC_BY_KEY, isMetricKey } from '@/lib/analytics/metrics';
 import type { RangeParams } from '@/lib/analytics/ranges';
 import type { WidgetData, WidgetInstance } from '@/lib/dashboard/types';
 
 const REALTIME_EVERY_MS = 30_000;
+
+/** A shared dashboard's data path: the share's own route, which serves only that dashboard's widgets. */
+async function loadShared(token: string, widgetId: string, range: RangeParams): Promise<{ ok: true; data: WidgetData } | { ok: false; error: string }> {
+  const q = new URLSearchParams({ id: widgetId });
+  for (const k of ['range', 'from', 'to', 'compare'] as const) {
+    const v = range[k];
+    if (v) q.set(k, v);
+  }
+  try {
+    const res = await fetch(`/api/share/${encodeURIComponent(token)}/widget?${q.toString()}`, { cache: 'no-store' });
+    return (await res.json()) as { ok: true; data: WidgetData } | { ok: false; error: string };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : 'Could not load' };
+  }
+}
 
 function defaultTitle(instance: WidgetInstance): string {
   const ds = instance.config.dataset ? DATASET_BY_KEY[instance.config.dataset] : undefined;
@@ -45,8 +61,9 @@ export default function WidgetView({
   const meta = WIDGET_BY_TYPE[instance.type];
   const ds = instance.config.dataset ? DATASET_BY_KEY[instance.config.dataset] : undefined;
   const live = !!ds?.live;
+  const share = useShare();
   const periodQuery = usePeriodQuery();
-  const seeAll = ds && !live && meta.needsData ? exploreHref(ds.key, { query: periodQuery, metric: instance.config.metric, filters: instance.config.filters }) : null;
+  const seeAll = ds && !live && meta.needsData && !share ? exploreHref(ds.key, { query: periodQuery, metric: instance.config.metric, filters: instance.config.filters }) : null;
   const [data, setData] = useState<WidgetData | null>(meta.needsData ? null : { kind: 'empty' });
   const [error, setError] = useState<string | null>(null);
   const cfgKey = JSON.stringify(instance.config);
@@ -58,7 +75,7 @@ export default function WidgetView({
     if (!meta.needsData) return;
     let alive = true;
     async function fetchOnce() {
-      const r = await loadWidget(siteId, instance.type, instance.config, range);
+      const r = share ? await loadShared(share.token, instance.id, range) : await loadWidget(siteId, instance.type, instance.config, range);
       if (!alive) return;
       if (r.ok) {
         setData(r.data);
@@ -75,7 +92,7 @@ export default function WidgetView({
     };
     // cfgKey/rangeKey are stable serialisations of the config and range (deep-compare on purpose).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [siteId, instance.type, cfgKey, rangeKey, meta.needsData, live]);
+  }, [siteId, instance.type, cfgKey, rangeKey, meta.needsData, live, share?.token]);
 
   const loading = meta.needsData && data === null && !error;
 

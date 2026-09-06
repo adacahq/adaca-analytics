@@ -28,11 +28,14 @@ export default function DashboardGrid({
   siteId,
   hasRealtime,
   lede,
+  readonly = false,
 }: {
   dashboard: Dashboard;
   siteId: string;
   hasRealtime: boolean;
   lede: string;
+  /** A shared view: no Customise, no menu, nothing persists. */
+  readonly?: boolean;
 }) {
   const [items, setItems] = useState<WidgetInstance[]>(dashboard.layout);
   const [editing, setEditing] = useState(false);
@@ -153,7 +156,7 @@ export default function DashboardGrid({
       <div className="flex items-end justify-between gap-6 flex-wrap">
         <h1 className="view-title rv">{dashboard.name}</h1>
         <span className="rv flex items-center gap-2" style={{ '--i': 1 } as CSSProperties}>
-          {editing ? (
+          {readonly ? null : editing ? (
             <>
               <button type="button" className="btn btn-ghost btn-sm" onClick={openAdd}>
                 + Add widget
@@ -190,9 +193,11 @@ export default function DashboardGrid({
               This dashboard is empty
             </h3>
             <p>Add numbers, charts, lists and tables from your analytics data — pick the data type, the specific data, then how to chart it.</p>
-            <button type="button" className="btn btn-primary btn-sm mt-5" onClick={openAdd}>
-              + Add your first widget
-            </button>
+            {readonly ? null : (
+              <button type="button" className="btn btn-primary btn-sm mt-5" onClick={openAdd}>
+                + Add your first widget
+              </button>
+            )}
           </div>
         ) : (
           <div ref={containerRef}>
@@ -230,7 +235,7 @@ export default function DashboardGrid({
         )}
       </div>
 
-      <WidgetBuilder open={builderOpen} onClose={() => setBuilderOpen(false)} initial={builderInitial} onSubmit={submit} hasRealtime={hasRealtime} />
+      {readonly ? null : <WidgetBuilder open={builderOpen} onClose={() => setBuilderOpen(false)} initial={builderInitial} onSubmit={submit} hasRealtime={hasRealtime} />}
     </div>
   );
 }

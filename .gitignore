@@ -21,10 +21,11 @@ next-env.d.ts
 *.pem
 npm-debug.log*
 
-# AI assistant / agent instructions (local, not part of the shipped repo)
+# AI assistant / agent instructions and local analyses (not part of the shipped repo)
 CLAUDE.md
 AGENTS.md
 .claude/
+plausible-gap.md
 
 # vinext generated route types
 .next/

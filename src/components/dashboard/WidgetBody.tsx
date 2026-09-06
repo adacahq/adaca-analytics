@@ -12,6 +12,7 @@ import { METRIC_BY_KEY, isMetricKey, type MetricDef } from '@/lib/analytics/metr
 import { fmtBucket, fmtDelta, fmtHourLong, fmtInt, fmtPercent } from '@/lib/format';
 import type { Bucket, RankedRow, WidgetConfig, WidgetData, WidgetInstance } from '@/lib/dashboard/types';
 import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useCompact, useCompareCaption, useNarrow, usePeriodQuery } from './chart-helpers';
+import { useShare } from './ShareContext';
 
 /** Where a ranked row opens; null keeps the mark plain. */
 export type Href = ((row: { key: string; sub?: string; raw?: string }) => string | null) | null;
@@ -22,10 +23,11 @@ function metricFor(config: WidgetConfig): MetricDef {
   return METRIC_BY_KEY[key];
 }
 
-/** The drill link for rows of a dataset, from the current URL's period. */
+/** The drill link for rows of a dataset, from the current URL's period (none on a shared dashboard). */
 export function useDrill(ds: Dataset | undefined): Href {
   const query = usePeriodQuery();
-  if (!ds?.drill) return null;
+  const share = useShare();
+  if (!ds?.drill || share) return null;
   const kind = ds.drill;
   return (row) => ((row.raw ?? row.key) === '(other)' ? null : entityHref(kind, drillValue(ds, row), query));
 }
@@ -350,11 +352,12 @@ export function WidgetBody({ instance, data }: { instance: WidgetInstance; data:
   const ds = instance.config.dataset ? DATASET_BY_KEY[instance.config.dataset] : undefined;
   const href = useDrill(ds);
   const query = usePeriodQuery();
+  const share = useShare();
   const ts = data?.kind === 'timeseries' ? data : null;
   const narrow = useNarrow(ts?.bucket ?? 'minute', ts?.from, ts?.to);
   if (instance.type === 'note') return <NoteBody markdown={instance.config.markdown ?? ''} />;
   if (!data) return null;
-  const target = ds ? kpiDrill(ds, instance.config.filters) : null;
+  const target = ds && !share ? kpiDrill(ds, instance.config.filters) : null;
   const kpiHref = target ? entityHref(target.kind, target.value, query) : null;
   switch (data.kind) {
     case 'kpi':

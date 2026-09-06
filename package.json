@@ -34,6 +34,12 @@
       },
       "BASIC_AUTH_PASSWORD": {
         "description": "Optional. Password for the Basic Auth gate."
+      },
+      "RESEND_API_KEY": {
+        "description": "Optional. A Resend API key, so weekly/monthly summaries and traffic alerts can be emailed. Slack webhooks need no key."
+      },
+      "REPORT_FROM": {
+        "description": "Optional. The sender address for emailed reports, on a domain verified in Resend (e.g. analytics@yourcompany.com)."
       }
     }
   },

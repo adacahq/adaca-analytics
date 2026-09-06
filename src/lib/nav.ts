@@ -77,6 +77,7 @@ export function navGroups(dashboards: DashboardLink[]): NavGroup[] {
           views: [
             { href: '/settings/sites', label: 'Sites' },
             { href: '/settings/ingestion', label: 'Ingestion' },
+            { href: '/settings/reports', label: 'Reports' },
             { href: '/settings/about', label: 'About' },
           ],
         },

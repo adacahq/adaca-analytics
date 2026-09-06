@@ -11,7 +11,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
     <div>
       <h1 className="view-title rv">Settings</h1>
       <p className="lede rv" style={{ '--i': 1 } as CSSProperties}>
-        Sites, ingestion runs and what this deployment is.
+        Sites, ingestion runs, scheduled reports and what this deployment is.
       </p>
       <div className="rv mt-6" style={{ '--i': 1 } as CSSProperties}>
         <TabLinks
@@ -19,6 +19,7 @@ export default function SettingsLayout({ children }: { children: ReactNode }) {
           tabs={[
             { href: '/settings/sites', label: 'Sites' },
             { href: '/settings/ingestion', label: 'Ingestion' },
+            { href: '/settings/reports', label: 'Reports' },
             { href: '/settings/about', label: 'About' },
           ]}
         />

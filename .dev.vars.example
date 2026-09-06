@@ -11,3 +11,10 @@ GOOGLE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"...","privat
 # Leave both empty to disable the gate.
 BASIC_AUTH_USERNAME=
 BASIC_AUTH_PASSWORD=
+
+# ── Reports by email (optional) ──────────────────────────────────────────
+# Weekly/monthly summaries and alerts go out through Resend (https://resend.com).
+# Set both to enable the email channel; Slack webhooks work without them.
+# In production:  wrangler secret put RESEND_API_KEY / REPORT_FROM
+RESEND_API_KEY=
+REPORT_FROM=

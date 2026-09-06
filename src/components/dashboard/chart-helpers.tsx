@@ -11,6 +11,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Text } from 'recharts';
 import type { Bucket } from '@/lib/dashboard/types';
 import { bucketSpan, compareCaption, parseCompare } from '@/lib/analytics/ranges';
+import { useShare } from './ShareContext';
 
 // Theme-aware series slots (the direction reverses per theme in globals.css).
 export const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)', 'var(--series-5)', 'var(--series-6)'];
@@ -62,7 +63,8 @@ export function useNarrow(bucket: Bucket | 'minute', from?: string, to?: string)
   const router = useRouter();
   const path = usePathname();
   const params = useSearchParams();
-  if (!from || !to || bucket === 'minute' || bucket === 'hour') return null;
+  const share = useShare();
+  if (!from || !to || bucket === 'minute' || bucket === 'hour' || share?.locked) return null;
   return (name: string) => {
     const span = bucketSpan(name, bucket, { from, to });
     if (!span || (span.from === from && span.to === to)) return;
