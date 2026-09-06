@@ -980,19 +980,38 @@ select.field-input option { background: var(--bg); color: var(--fg); }
   border-radius: 14px;
 }
 .react-grid-item.react-draggable-dragging { z-index: 30; }
-.react-resizable-handle {
-  background-image: none !important;
+/* The resize handle: one hairline corner glyph, drawn once. The library's
+   stylesheet paints its own 5px corner in a ::after and hides the handle until
+   the item is hovered; those rules outrank single-class selectors, so the
+   overrides below carry one more class (the grid) so they win whatever order
+   the two stylesheets load in. The hit area stays 22px square at the corner;
+   the glyph sits 7px in, inside the card's rounded corner, faint in edit
+   mode so it can be found, full on hover, accent while grabbed. */
+.react-grid-layout .react-grid-item > .react-resizable-handle {
+  width: 22px;
+  height: 22px;
+  opacity: 0.55;
+  color: var(--muted);
+  background: none;
+  border: 0;
+  transition: opacity 0.25s, color 0.25s;
 }
-.react-resizable-handle-se {
-  width: 16px;
-  height: 16px;
-  right: 2px;
-  bottom: 2px;
-  cursor: se-resize;
-  border-right: 2px solid var(--muted);
-  border-bottom: 2px solid var(--muted);
+.react-grid-layout .react-grid-item:hover > .react-resizable-handle { opacity: 1; }
+.react-grid-layout .react-grid-item > .react-resizable-handle:hover,
+.react-grid-layout .react-grid-item.resizing > .react-resizable-handle { color: var(--accent); opacity: 1; }
+.react-grid-layout .react-grid-item > .react-resizable-handle::after {
+  content: '';
+  position: absolute;
+  right: 7px;
+  bottom: 7px;
+  width: 9px;
+  height: 9px;
+  border-right: 1.5px solid currentColor;
+  border-bottom: 1.5px solid currentColor;
+  border-bottom-right-radius: 3px;
 }
-.react-resizable-handle-se:hover { border-color: var(--accent); }
+.react-grid-layout .react-grid-item > .react-resizable-handle.react-resizable-handle-se { right: 0; bottom: 0; cursor: se-resize; transform: none; }
+.react-grid-layout .react-grid-item.resizing > .widget { border-color: var(--accent); }
 
 /* ── Toasts (sonner) — on-brand canvas styling ───────────────── */
 [data-sonner-toast] {
