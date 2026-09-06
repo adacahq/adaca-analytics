@@ -11,10 +11,12 @@
    <html data-theme="light|dark"> drives every colour through one
    set of variables, and the switch itself transitions on the one
    ease. Blue (--accent) is CHROME: nav, buttons, links, focus,
-   active states. Orange is DATA and only data: the --series ramp
-   colours every chart mark, share bar and sparkline, and never a
-   control. See "ANALYTICS IDIOMS" near the end of this file for
-   the handful of classes this app adds on top of Canvas.
+   active states. The --series ramp is DATA and only data: it colours
+   every chart mark, share bar and sparkline, and never a control. Its
+   hue is the deployment's palette (Settings → Appearance; blue by
+   default, see "Chart palettes" at the end of this file). See
+   "ANALYTICS IDIOMS" near the end for the handful of classes this app
+   adds on top of Canvas.
    ─────────────────────────────────────────────────────────── */
 :root {
   --blue: #2074ef;
@@ -26,16 +28,18 @@
   --red:   #d95e4a;
   --green: #2f9e77;
 
-  /* The data ramp — DATA ONLY, never chrome. Orange survives here and
-     nowhere else: chart series, share bars, sparklines. It reads against
-     the blue chrome, which is the point. --accent-1/2/3 are the three-step
-     shorthand (light / mid / deep) for single-series marks. */
-  --accent-1: #ffc7ad;
-  --accent-2: #f87854;
-  --accent-3: #cf4422;
-  --accent-tint: rgba(248, 120, 84, 0.12);
-  --chart-1: #ffd8c2; --chart-2: #fbb088; --chart-3: #f6814f;
-  --chart-4: #e85d30; --chart-5: #c2451f; --chart-6: #8f3417;
+  /* The data ramp — DATA ONLY, never chrome: chart series, share bars,
+     sparklines. Blue by default (a deeper, less saturated blue than the
+     chrome accent, so a mark never reads as a control); the palettes at
+     the end of this file swap the six --chart steps for another hue.
+     --accent-1/2/3 are the three-step shorthand (light / mid / deep) for
+     single-series marks. */
+  --accent-1: #a8c9fb;
+  --accent-2: #3f7fe6;
+  --accent-3: #163d86;
+  --accent-tint: rgba(63, 127, 230, 0.12);
+  --chart-1: #d6e6ff; --chart-2: #a8c9fb; --chart-3: #74a6f4;
+  --chart-4: #3f7fe6; --chart-5: #2461c8; --chart-6: #163d86;
   --series-1: var(--chart-1); --series-2: var(--chart-2); --series-3: var(--chart-3);
   --series-4: var(--chart-4); --series-5: var(--chart-5); --series-6: var(--chart-6);
 }
@@ -67,7 +71,7 @@ html, html[data-theme='light'] {
      --accent; the RED orange ramp is untouched. */
   --accent-strong: #1a5fd0;
   --crit-strong: #b8412c;
-  /* The RED series ramp reverses under light: darkest orange leads on white
+  /* The series ramp reverses under light: the deepest step leads on white
      (the :root default — lightest leads — is tuned for dark; see below). */
   --series-1: var(--chart-6); --series-2: var(--chart-5); --series-3: var(--chart-4);
   --series-4: var(--chart-3); --series-5: var(--chart-2); --series-6: var(--chart-1);
@@ -1337,3 +1341,28 @@ kbd.kb { display: inline-block; margin-left: 8px; padding: 0 5px; min-width: 16p
 .sharerow { padding: 14px 16px; }
 .sharerow input, .sharerow textarea { font-family: var(--font-mono); font-size: 12px; }
 @media (max-width: 640px) { .share-brand > span { display: none; } }
+
+/* ── Chart palettes (Settings → Appearance) ──────────────────────
+   The app's wrapper carries data-palette and the ramp is re-derived there:
+   custom properties resolve where they are declared, so overriding the
+   --chart steps alone would never reach the --series set on <html>. Light
+   leads with the deepest step, dark with the lightest, like the default. */
+[data-palette] {
+  --accent-1: var(--chart-2); --accent-2: var(--chart-4); --accent-3: var(--chart-6);
+  --accent-tint: color-mix(in srgb, var(--chart-4) 12%, transparent);
+  --series-1: var(--chart-6); --series-2: var(--chart-5); --series-3: var(--chart-4);
+  --series-4: var(--chart-3); --series-5: var(--chart-2); --series-6: var(--chart-1);
+}
+html[data-theme='dark'] [data-palette] {
+  --series-1: var(--chart-1); --series-2: var(--chart-2); --series-3: var(--chart-3);
+  --series-4: var(--chart-4); --series-5: var(--chart-5); --series-6: var(--chart-6);
+}
+[data-palette='blue']   { --chart-1: #d6e6ff; --chart-2: #a8c9fb; --chart-3: #74a6f4; --chart-4: #3f7fe6; --chart-5: #2461c8; --chart-6: #163d86; }
+[data-palette='red']    { --chart-1: #ffd4d0; --chart-2: #fba9a2; --chart-3: #f57b72; --chart-4: #e6524a; --chart-5: #c0352f; --chart-6: #8b231f; }
+[data-palette='yellow'] { --chart-1: #fff0b8; --chart-2: #fedd7a; --chart-3: #f9c740; --chart-4: #e6ab1a; --chart-5: #bf8a0e; --chart-6: #8a6209; }
+[data-palette='green']  { --chart-1: #cdefdf; --chart-2: #9adfc0; --chart-3: #63c99c; --chart-4: #38ad7a; --chart-5: #24885d; --chart-6: #175f41; }
+[data-palette='orange'] { --chart-1: #ffd8c2; --chart-2: #fbb088; --chart-3: #f6814f; --chart-4: #e85d30; --chart-5: #c2451f; --chart-6: #8f3417; }
+[data-palette='purple'] { --chart-1: #e4d9ff; --chart-2: #c7b3fb; --chart-3: #a888f3; --chart-4: #8a5fe4; --chart-5: #6a41c0; --chart-6: #4a2b88; }
+/* The Appearance page's preview: the six series steps of the chosen ramp. */
+.swatches { display: flex; gap: 6px; }
+.swatches span { flex: 1; height: 28px; border-radius: 8px; border: 1px solid var(--card-line); }

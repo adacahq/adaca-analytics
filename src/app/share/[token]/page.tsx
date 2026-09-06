@@ -8,6 +8,7 @@ import { rangeFor, rangeParams, type SearchParams } from '@/lib/context';
 import { compareNoun, todayInZone, type RangeParams } from '@/lib/analytics/ranges';
 import { parseSegment, segmentLabel } from '@/lib/analytics/segments';
 import { earliestDate } from '@/lib/analytics/rollups';
+import { getPalette } from '@/lib/db/settings';
 import { fmtDay } from '@/lib/format';
 
 export const dynamic = 'force-dynamic';
@@ -39,7 +40,7 @@ export default async function SharePage({ params, searchParams }: { params: Prom
   const range = await rangeFor(site, lock ?? rangeParams(sp));
   const seg = share.seg ? parseSegment(share.seg) : null;
   const today = todayInZone(site.timezone);
-  const earliest = await earliestDate(site.id);
+  const [earliest, palette] = await Promise.all([earliestDate(site.id), getPalette()]);
   const embed = (Array.isArray(sp.embed) ? sp.embed[0] : sp.embed) === '1';
   const isRealtime = dashboard.slug === 'realtime';
   const lede = isRealtime
@@ -47,7 +48,7 @@ export default async function SharePage({ params, searchParams }: { params: Prom
     : `${site.name} · ${fmtDay(range.from)} to ${fmtDay(range.to)}${range.compare ? `, compared with ${compareNoun(range, fmtDay)}` : ''}${seg ? ` · ${segmentLabel(seg)}` : ''}.`;
 
   return (
-    <ShareShell token={token} locked={!!lock || isRealtime} embed={embed} siteName={site.name} today={today} earliest={earliest}>
+    <ShareShell token={token} locked={!!lock || isRealtime} embed={embed} siteName={site.name} today={today} earliest={earliest} palette={palette}>
       <DashboardGrid key={`${dashboard.id}:${site.id}`} dashboard={dashboard} siteId={site.id} hasRealtime={!!site.ga_property_id} lede={lede} readonly />
     </ShareShell>
   );

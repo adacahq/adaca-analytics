@@ -6,6 +6,7 @@ import Logo from '@/components/ui/Logo';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import DateRange from '@/layouts/App/DateRange';
 import { ShareProvider } from '@/components/dashboard/ShareContext';
+import type { PaletteKey } from '@/lib/palette';
 
 /**
  * The chrome of a shared dashboard: no rail, no site switcher, no filter —
@@ -19,6 +20,7 @@ export default function ShareShell({
   siteName,
   today,
   earliest,
+  palette,
   children,
 }: {
   token: string;
@@ -27,12 +29,13 @@ export default function ShareShell({
   siteName: string;
   today: string;
   earliest: string | null;
+  palette: PaletteKey;
   children: ReactNode;
 }) {
   const pathname = usePathname() ?? `/share/${token}`;
   return (
     <ShareProvider value={{ token, locked }}>
-      <div className={embed ? 'share-root embed' : 'share-root'}>
+      <div className={embed ? 'share-root embed' : 'share-root'} data-palette={palette}>
         <header className="tb">
           <div className="tbl">
             <span className="share-brand">

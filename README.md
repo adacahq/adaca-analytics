@@ -251,7 +251,9 @@ convention GA uses. Derivations are documented at the top of
 - **+ New dashboard** in the rail starts blank or from any of the six templates.
 
 Dashboards are shared by everyone who can open the deployment; there are no user
-accounts.
+accounts. **Settings → Appearance** picks the chart palette for everyone — blue by
+default, or red, yellow, green, orange or purple; light and dark stay each reader's
+own choice in the topbar.
 
 **On a phone or tablet** the same dashboards reflow rather than shrink: below 900px
 the rail becomes a drawer behind **Menu** and widgets fall into two columns (charts

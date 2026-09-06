@@ -131,7 +131,7 @@ only the blue chrome does:
 | `--accent-2` | `#f87854` | Three-step shorthand: mid |
 | `--accent-3` | `#cf4422` | Three-step shorthand: deep |
 | `--accent-tint` | `rgba(248, 120, 84, 0.12)` | A faint orange fill — used for `.docs-prose blockquote` backgrounds (paired with an `--accent`/blue left border there; that combination is existing markdown-prose styling, not a chrome/data violation worth copying elsewhere). |
-| `--chart-1` … `--chart-6` | `#ffd8c2 → #fbb088 → #f6814f → #e85d30 → #c2451f → #8f3417` | The six-step chart-series ramp, lightest to deepest. |
+| `--chart-1` … `--chart-6` | `#d6e6ff → #a8c9fb → #74a6f4 → #3f7fe6 → #2461c8 → #163d86` | The six-step chart-series ramp, lightest to deepest. Blue by default; Settings → Appearance swaps it for red, yellow, green, orange or purple deployment-wide, via `data-palette` on the app wrapper (ramps at the end of `globals.css`). |
 
 `--series-1..6` alias the chart ramp, but **the order reverses by theme** so
 the leading series colour stays legible against the ground:

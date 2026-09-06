@@ -10,6 +10,7 @@ import ThemeToggle from '@/components/ui/ThemeToggle';
 import Nav from './Nav';
 import Topbar from './Topbar';
 import type { SavedSegmentOption } from './SegmentControl';
+import type { PaletteKey } from '@/lib/palette';
 
 export interface SiteOption {
   id: string;
@@ -32,6 +33,7 @@ export default function AppShell({
   currentSiteId,
   today,
   earliest,
+  palette,
   segments,
   dashboards,
   children,
@@ -42,6 +44,8 @@ export default function AppShell({
   today: string;
   /** The current site's first day of data, for "All time". */
   earliest: string | null;
+  /** The deployment's chart palette, stamped on the wrapper for the CSS ramps. */
+  palette: PaletteKey;
   segments: SavedSegmentOption[];
   dashboards: DashboardLink[];
   children: ReactNode;
@@ -52,7 +56,7 @@ export default function AppShell({
   const groups = navGroups(dashboards);
 
   return (
-    <>
+    <div data-palette={palette}>
       <Topbar
         sites={sites}
         currentSiteId={currentSiteId}
@@ -80,6 +84,6 @@ export default function AppShell({
           <ConfirmProvider>{children}</ConfirmProvider>
         </div>
       </main>
-    </>
+    </div>
   );
 }

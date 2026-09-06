@@ -40,7 +40,9 @@ export default function Modal({
   // callers pass inline closures, and re-running the focus effect on every
   // render would move focus to the first control after each keystroke.
   const onCloseRef = useRef(onClose);
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!open) return;
