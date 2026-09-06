@@ -37,6 +37,7 @@ export default function Topbar({
   segments,
   groups,
   pathname,
+  menuOpen,
   onMenu,
 }: {
   sites: SiteOption[];
@@ -46,6 +47,8 @@ export default function Topbar({
   segments: SavedSegmentOption[];
   groups: NavGroup[];
   pathname: string;
+  /** Whether the drawer is open: the hamburger reads as a close cross then. */
+  menuOpen: boolean;
   onMenu: () => void;
 }) {
   const hit = activeGroupAndSection(groups, pathname);
@@ -76,8 +79,12 @@ export default function Topbar({
       <div className="tbctl theme">
         <ThemeToggle />
       </div>
-      <button type="button" className="tbmenu" onClick={onMenu} aria-label="Open navigation">
-        Menu
+      <button type="button" className={menuOpen ? 'tbmenu open' : 'tbmenu'} onClick={onMenu} aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen}>
+        <span className="hb" aria-hidden>
+          <i />
+          <i />
+          <i />
+        </span>
       </button>
     </header>
   );

@@ -298,8 +298,18 @@ html[data-theme='dark'] .sb { --rail-top: #0a1524; --rail-bottom: #0a1524; }
 }
 .tbl { display: flex; align-items: center; gap: 6px; min-width: 0; }
 .tbdrop { position: relative; }
-.tbmenu { display: none; background: none; border: none; color: var(--fg); font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; padding: 8px 10px; border-radius: 8px; }
+/* The drawer's button: a hamburger whose three bars fold into a cross while
+   the drawer is open. Hidden until the rail becomes a drawer. */
+.tbmenu { display: none; width: 40px; height: 40px; padding: 0; place-items: center; background: none; border: none; color: var(--fg); cursor: pointer; border-radius: 8px; transition: background 0.25s; }
 .tbmenu:hover { background: var(--ghost); }
+.tbmenu .hb { position: relative; display: block; width: 18px; height: 12px; }
+.tbmenu .hb i { position: absolute; left: 0; width: 18px; height: 1.5px; border-radius: 1px; background: currentColor; transition: top 0.3s var(--ease), transform 0.3s var(--ease), opacity 0.2s; }
+.tbmenu .hb i:nth-child(1) { top: 0; }
+.tbmenu .hb i:nth-child(2) { top: 5.25px; }
+.tbmenu .hb i:nth-child(3) { top: 10.5px; }
+.tbmenu.open .hb i:nth-child(1) { top: 5.25px; transform: rotate(45deg); }
+.tbmenu.open .hb i:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.tbmenu.open .hb i:nth-child(3) { top: 5.25px; transform: rotate(-45deg); }
 .tbswitch { display: flex; align-items: baseline; gap: 10px; background: none; border: none; padding: 8px 12px; margin-left: -12px; border-radius: 8px; cursor: pointer; color: var(--fg); transition: background 0.25s; }
 .tbswitch:hover { background: var(--ghost); }
 .tbswitch.static { cursor: default; }
@@ -350,11 +360,13 @@ main.page { margin-left: var(--sb-w); padding-top: 56px; }
       --rail-top 0.9s var(--ease), --rail-bottom 0.9s var(--ease);
   }
   .sb.open { transform: none; visibility: visible; box-shadow: 24px 0 80px -40px rgba(10, 21, 36, 0.6); }
-  .scrim { display: block; position: fixed; inset: 0; z-index: 54; background: rgba(10, 21, 36, 0.4); backdrop-filter: blur(2px); }
-  .tb { padding: 0 16px; gap: 10px; }
-  /* Menu takes the right end; the site switcher and the live count leave the
-     bar (the drawer's foot carries the site picker). */
-  .tbmenu { display: block; padding: 8px 6px; margin-right: -6px; }
+  /* The bar sits above the scrim and below the drawer, so the cross at its
+     right end stays lit and tappable while the drawer is open. */
+  .scrim { display: block; position: fixed; inset: 0; z-index: 53; background: rgba(10, 21, 36, 0.4); backdrop-filter: blur(2px); }
+  .tb { padding: 0 16px; gap: 10px; z-index: 54; }
+  /* The hamburger takes the right end; the site switcher and the live count
+     leave the bar (the drawer's foot carries the site picker). */
+  .tbmenu { display: grid; margin-right: -8px; }
   .tbl > .tbdrop { display: none; }
   .tbctl.live { display: none; }
   .wrap { padding: 72px 20px 112px; }

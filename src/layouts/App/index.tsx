@@ -66,7 +66,8 @@ export default function AppShell({
         segments={segments}
         groups={groups}
         pathname={pathname}
-        onMenu={() => setOpenedAt(pathname)}
+        menuOpen={open}
+        onMenu={() => setOpenedAt(open ? null : pathname)}
       />
       {open ? <div className="scrim" onClick={() => setOpenedAt(null)} aria-hidden /> : null}
       <aside className={open ? 'sb open' : 'sb'}>
