@@ -10,13 +10,13 @@ import { useEffect, useState, type ReactNode } from 'react';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { Text } from 'recharts';
 import type { Bucket } from '@/lib/dashboard/types';
-import { bucketSpan } from '@/lib/analytics/ranges';
+import { bucketSpan, compareCaption, parseCompare } from '@/lib/analytics/ranges';
 
 // Theme-aware series slots (the direction reverses per theme in globals.css).
 export const SERIES = ['var(--series-1)', 'var(--series-2)', 'var(--series-3)', 'var(--series-4)', 'var(--series-5)', 'var(--series-6)'];
 export const axisTick = { fontSize: 10, fontFamily: 'var(--font-mono)', fill: 'var(--muted)' };
 
-const PERIOD_KEYS = ['range', 'from', 'to', 'compare'];
+const PERIOD_KEYS = ['range', 'from', 'to', 'compare', 'seg'];
 
 /** True on phone-width viewports (≤640px), so charts can trade label room for plot room. */
 export function useCompact(): boolean {
@@ -44,7 +44,13 @@ export function usePeriodQuery(): string {
 
 /** Human name of a bucket, for hints. */
 export function bucketNoun(bucket: Bucket | 'minute'): string {
-  return bucket === 'week' ? 'week' : bucket === 'month' ? 'month' : 'day';
+  return bucket === 'week' ? 'week' : bucket === 'month' ? 'month' : bucket === 'hour' ? 'hour' : 'day';
+}
+
+/** The caption under a delta for the page's comparison mode: 'vs prev', 'vs last year', 'vs period'. */
+export function useCompareCaption(): string {
+  const params = useSearchParams();
+  return compareCaption(parseCompare(params?.get('compare'), { from: '2000-01-01', to: '2000-01-01' }).compare);
 }
 
 /**
@@ -56,7 +62,7 @@ export function useNarrow(bucket: Bucket | 'minute', from?: string, to?: string)
   const router = useRouter();
   const path = usePathname();
   const params = useSearchParams();
-  if (!from || !to || bucket === 'minute') return null;
+  if (!from || !to || bucket === 'minute' || bucket === 'hour') return null;
   return (name: string) => {
     const span = bucketSpan(name, bucket, { from, to });
     if (!span || (span.from === from && span.to === to)) return;

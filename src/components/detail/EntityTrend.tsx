@@ -33,7 +33,7 @@ export default function EntityTrend({ metricKey, bucket, points, title, from, to
             <CartesianGrid vertical={false} stroke="var(--line)" />
             <XAxis dataKey="name" tick={(p) => <LinkTick {...p} format={fmtX} onOpen={narrow} />} tickLine={false} axisLine={{ stroke: 'var(--line)' }} interval="preserveStartEnd" minTickGap={24} />
             <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-            <Tooltip content={<ChartTip title={fmtX} row={(v, k) => [metric.format(v), k === 'previous' ? 'Previous period' : metric.label]} hint={narrow ? `Click to narrow to this ${bucketNoun(bucket)}` : null} />} />
+            <Tooltip content={<ChartTip title={fmtX} row={(v, k) => [metric.format(v), k === 'previous' ? 'Compared period' : metric.label]} hint={narrow ? `Click to narrow to this ${bucketNoun(bucket)}` : null} />} />
             {compare ? <Line type="monotone" dataKey="previous" stroke={SERIES[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false} isAnimationActive={false} /> : null}
             <Line type="monotone" dataKey="value" stroke={SERIES[0]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
           </LineChart>

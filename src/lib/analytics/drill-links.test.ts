@@ -50,6 +50,7 @@ describe('bucketSpan', () => {
   });
   it('refuses labels that are not calendar buckets or fall outside the period', () => {
     expect(bucketSpan('12', 'minute', within)).toBeNull();
+    expect(bucketSpan('2026-08-20T14', 'hour', within)).toBeNull();
     expect(bucketSpan('nope', 'day', within)).toBeNull();
     expect(bucketSpan('2026-07-01', 'day', within)).toBeNull();
   });

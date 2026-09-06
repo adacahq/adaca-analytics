@@ -2,6 +2,7 @@
 
 import { METRIC_BY_KEY, type MetricKey } from '@/lib/analytics/metrics';
 import { fmtDelta } from '@/lib/format';
+import { useCompareCaption } from '@/components/dashboard/chart-helpers';
 
 export interface KpiItem {
   metric: MetricKey;
@@ -11,6 +12,7 @@ export interface KpiItem {
 
 /** The stat strip: every KPI of the entity with its delta against the period before. */
 export default function EntityKpis({ kpis }: { kpis: KpiItem[] }) {
+  const caption = useCompareCaption();
   return (
     <div className="stats" style={{ marginTop: 28 }}>
       {kpis.map((k) => {
@@ -25,10 +27,10 @@ export default function EntityKpis({ kpis }: { kpis: KpiItem[] }) {
             {delta !== null ? (
               <em className={`delta ${tone}`}>
                 {delta}
-                <small>vs prev</small>
+                <small>{caption}</small>
               </em>
             ) : k.previous !== null ? (
-              <em className="delta">— vs prev</em>
+              <em className="delta">— {caption}</em>
             ) : null}
           </div>
         );

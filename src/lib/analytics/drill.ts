@@ -9,7 +9,7 @@ import type { Bucket, Point } from '@/lib/dashboard/types';
 import { ENTITY_BY_KIND, type Breakdown, type EntityDef, type EntityKind } from './entities';
 import { metricValue, type MetricKey } from './metrics';
 import { REPORT_BY_KEY, type MetricColumn } from './reports';
-import { autoBucket, previousPeriod, type DateRange } from './ranges';
+import { autoBucket, comparisonPeriod, type DateRange } from './ranges';
 import { breakdownSql, entitySeriesSql, entityTotalsSql, siteTotalsSql, type Stmt } from './query-sql';
 import { fillDays } from './query';
 
@@ -55,9 +55,9 @@ function prepared(stmt: Stmt) {
 
 export async function loadEntity(site: Site, kind: EntityKind, value: string, range: DateRange): Promise<EntityPageData> {
   const def: EntityDef = ENTITY_BY_KIND[kind];
-  const prev = previousPeriod(range);
+  const prev = comparisonPeriod(range);
   const bucket = autoBucket(range);
-  const compare = range.compare !== false;
+  const compare = range.compare !== null;
 
   const stmts: Stmt[] = [
     entityTotalsSql(site.id, def, value, range.from, range.to),
@@ -77,7 +77,7 @@ export async function loadEntity(site: Site, kind: EntityKind, value: string, ra
   const leadNow = metricValue(def.lead, cur);
   const leadSite = metricValue(def.lead, siteCur);
 
-  // Deltas are always shown: the previous period is one more precomputed read.
+  // Deltas are always shown (against the page's comparison window, else the period before): one more precomputed read.
   const kpis: EntityKpi[] = def.kpis.map((m) => ({ metric: m, value: metricValue(m, cur), previous: metricValue(m, before) }));
 
   const points = fillDays(

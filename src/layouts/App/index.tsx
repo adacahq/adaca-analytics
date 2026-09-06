@@ -9,6 +9,7 @@ import { navGroups, type DashboardLink } from '@/lib/nav';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import Nav from './Nav';
 import Topbar from './Topbar';
+import type { SavedSegmentOption } from './SegmentControl';
 
 export interface SiteOption {
   id: string;
@@ -30,6 +31,8 @@ export default function AppShell({
   sites,
   currentSiteId,
   today,
+  earliest,
+  segments,
   dashboards,
   children,
 }: {
@@ -37,6 +40,9 @@ export default function AppShell({
   currentSiteId: string | null;
   /** Today's calendar day in the current site's timezone (server-computed). */
   today: string;
+  /** The current site's first day of data, for "All time". */
+  earliest: string | null;
+  segments: SavedSegmentOption[];
   dashboards: DashboardLink[];
   children: ReactNode;
 }) {
@@ -51,6 +57,8 @@ export default function AppShell({
         sites={sites}
         currentSiteId={currentSiteId}
         today={today}
+        earliest={earliest}
+        segments={segments}
         groups={groups}
         pathname={pathname}
         onMenu={() => setOpenedAt(pathname)}

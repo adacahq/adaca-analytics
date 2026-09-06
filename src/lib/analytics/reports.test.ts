@@ -39,8 +39,8 @@ describe('report families', () => {
     expect(merged[0].metrics).toEqual([3, 1, 3, 1, 4, 15, 1, 7]);
   });
 
-  it('declares 17 pair families with two dimensions each, distinct from the 15 singles', () => {
-    expect(SINGLES).toHaveLength(15);
+  it('declares 17 pair families with two dimensions each, distinct from the 20 singles', () => {
+    expect(SINGLES).toHaveLength(20);
     expect(PAIRS).toHaveLength(17);
     for (const p of PAIRS) expect(p.gaDimensions, p.key).toHaveLength(2);
     expect(new Set(REPORTS.map((r) => r.key)).size).toBe(REPORTS.length);

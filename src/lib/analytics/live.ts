@@ -33,6 +33,14 @@ function rankedFrom(res: ReportResult, metricIndex = 0): WidgetData {
   return { kind: 'ranked', rows: rows.map((r) => ({ ...r, share: total > 0 ? r.value / total : 0 })), total };
 }
 
+/** Active users in the last 30 minutes (the topbar chip and the spike alert share the widget's cache). */
+export async function activeUsersNow(site: Site): Promise<number> {
+  const pid = site.ga_property_id;
+  if (!pid) return 0;
+  const now = await cached(`rt:${pid}:now`, () => runRealtimeReport(pid, { metrics: ['activeUsers'], limit: 1 }));
+  return now.rows[0]?.mets[0] ?? 0;
+}
+
 export async function runRealtime(site: Site, ds: Dataset, type: ChartType, config: WidgetConfig): Promise<WidgetData> {
   const pid = site.ga_property_id;
   if (!pid) return { kind: 'empty', reason: 'Realtime needs a GA4 property' };
@@ -49,8 +57,7 @@ export async function runRealtime(site: Site, ds: Dataset, type: ChartType, conf
       return { name: String(ago), value: byMin.get(ago) ?? 0 };
     });
     if (ds.report === 'rt_minutes') return { kind: 'timeseries', bucket: 'minute', points };
-    const now = await cached(`${base}:now`, () => runRealtimeReport(pid, { metrics: ['activeUsers'], limit: 1 }));
-    return { kind: 'kpi', value: now.rows[0]?.mets[0] ?? 0, previous: null, spark: points.map((p) => p.value) };
+    return { kind: 'kpi', value: await activeUsersNow(site), previous: null, spark: points.map((p) => p.value) };
   }
 
   const limit = Math.min(50, Math.max(1, config.limit ?? (type === 'donut' ? 6 : 10)));

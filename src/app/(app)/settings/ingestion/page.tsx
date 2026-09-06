@@ -2,8 +2,8 @@ import SubHead from '@/components/ui/SubHead';
 import IngestBanner, { type RunProgress } from '@/components/ingest/IngestBanner';
 import IngestControls, { type PairCoverage } from '@/components/settings/IngestControls';
 import { listSites } from '@/lib/db/sites';
-import { listActiveRuns, listRuns } from '@/lib/db/ingestRuns';
-import { unitsFor } from '@/lib/analytics/ingest';
+import { listActiveRuns, listRuns, scopeLabel } from '@/lib/db/ingestRuns';
+import { missingFamilies, unitsFor } from '@/lib/analytics/ingest';
 import { pairSpan } from '@/lib/analytics/rollups';
 import { fmtDay, fmtInstant, fmtInt } from '@/lib/format';
 
@@ -30,7 +30,11 @@ export default async function IngestionPage() {
   });
   const busySites = new Set(active.map((r) => r.site_id));
   const pairs = new Map<string, PairCoverage>();
-  for (const s of sites) pairs.set(s.id, await pairSpan(s.id));
+  const missing = new Map<string, string[]>();
+  for (const s of sites) {
+    pairs.set(s.id, await pairSpan(s.id));
+    missing.set(s.id, await missingFamilies(s));
+  }
 
   return (
     <div>
@@ -59,7 +63,7 @@ export default async function IngestionPage() {
                 })()}
               </div>
             </div>
-            <IngestControls site={s} busy={busySites.has(s.id)} pairs={pairs.get(s.id) ?? { rows: 0, from: null, to: null }} />
+            <IngestControls site={s} busy={busySites.has(s.id)} pairs={pairs.get(s.id) ?? { rows: 0, from: null, to: null }} missing={missing.get(s.id) ?? []} />
           </div>
         ))}
         {sites.length === 0 ? (
@@ -82,7 +86,7 @@ export default async function IngestionPage() {
             </div>
             <div className="mmeta">
               <span className="pill">{r.kind}</span>
-              <span className="pill">{r.scope === 'pairs' ? 'drill-down' : 'all'}</span>
+              <span className="pill">{scopeLabel(r.scope)}</span>
             </div>
             <dl className="mdl">
               <dt>Window</dt>
@@ -127,7 +131,7 @@ export default async function IngestionPage() {
               <tr key={r.id}>
                 <td>{byId.get(r.site_id)?.name ?? r.site_id}</td>
                 <td className="mono">{r.kind}</td>
-                <td className="mono">{r.scope === 'pairs' ? 'drill-down' : 'all'}</td>
+                <td className="mono">{scopeLabel(r.scope)}</td>
                 <td className="mono">
                   {fmtDay(r.from_date)} → {fmtDay(r.to_date)}
                 </td>

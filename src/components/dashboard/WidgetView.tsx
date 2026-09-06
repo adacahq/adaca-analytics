@@ -5,7 +5,8 @@ import WidgetCard from './WidgetCard';
 import { WidgetBody } from './WidgetBody';
 import { loadWidget } from '@/lib/dashboard/data';
 import { WIDGET_BY_TYPE } from '@/lib/dashboard/widgets';
-import { DATASET_BY_KEY } from '@/lib/analytics/catalog';
+import { DATASET_BY_KEY, exploreHref } from '@/lib/analytics/catalog';
+import { usePeriodQuery } from './chart-helpers';
 import { METRIC_BY_KEY, isMetricKey } from '@/lib/analytics/metrics';
 import type { RangeParams } from '@/lib/analytics/ranges';
 import type { WidgetData, WidgetInstance } from '@/lib/dashboard/types';
@@ -44,10 +45,12 @@ export default function WidgetView({
   const meta = WIDGET_BY_TYPE[instance.type];
   const ds = instance.config.dataset ? DATASET_BY_KEY[instance.config.dataset] : undefined;
   const live = !!ds?.live;
+  const periodQuery = usePeriodQuery();
+  const seeAll = ds && !live && meta.needsData ? exploreHref(ds.key, { query: periodQuery, metric: instance.config.metric, filters: instance.config.filters }) : null;
   const [data, setData] = useState<WidgetData | null>(meta.needsData ? null : { kind: 'empty' });
   const [error, setError] = useState<string | null>(null);
   const cfgKey = JSON.stringify(instance.config);
-  const rangeKey = `${range.range ?? ''}|${range.from ?? ''}|${range.to ?? ''}|${range.compare ?? ''}`;
+  const rangeKey = `${range.range ?? ''}|${range.from ?? ''}|${range.to ?? ''}|${range.compare ?? ''}|${range.seg ?? ''}`;
 
   // All setState is inside async callbacks. Stale data stays visible while a
   // re-fetch resolves; realtime widgets poll every 30 s.
@@ -79,11 +82,14 @@ export default function WidgetView({
   return (
     <WidgetCard
       title={instance.title || defaultTitle(instance)}
-      caption={live ? 'last 30 min' : undefined}
+      caption={live ? (range.seg ? 'last 30 min · not filtered' : 'last 30 min') : undefined}
       editing={editing}
       onEdit={onEdit}
       onDuplicate={onDuplicate}
-      onRemove={onRemove} onMove={onMove} canMove={canMove}
+      onRemove={onRemove}
+      onMove={onMove}
+      canMove={canMove}
+      seeAll={seeAll}
       loading={loading}
       error={error}
     >

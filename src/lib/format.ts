@@ -30,13 +30,25 @@ export function fmtDayShort(iso: string): string {
   return `${d} ${MONTHS[m - 1]}`;
 }
 
-/** '2026-09' → 'Sep 2026'; '2026-09-01' (a week/month bucket start) → '1 Sep'. */
-export function fmtBucket(label: string, bucket: 'day' | 'week' | 'month'): string {
+const HOUR_BUCKET = /^(\d{4}-\d{2}-\d{2})T(\d{2})$/;
+
+/** '2026-09' → 'Sep 2026'; '2026-09-01' (a week/month bucket start) → '1 Sep'; '2026-09-06T14' → '14:00'. */
+export function fmtBucket(label: string, bucket: 'hour' | 'day' | 'week' | 'month'): string {
   if (bucket === 'month' && /^\d{4}-\d{2}$/.test(label)) {
     const [y, m] = label.split('-').map(Number);
     return `${MONTHS[m - 1]} ${y}`;
   }
+  if (bucket === 'hour') {
+    const m = HOUR_BUCKET.exec(label);
+    return m ? `${m[2]}:00` : label;
+  }
   return fmtDayShort(label);
+}
+
+/** An hour bucket with its day, for tooltips: '2026-09-06T14' → '6 Sep 14:00'. */
+export function fmtHourLong(label: string): string {
+  const m = HOUR_BUCKET.exec(label);
+  return m ? `${fmtDayShort(m[1])} ${m[2]}:00` : label;
 }
 
 /** Day-of-week index (0 = Sunday, GA's convention) → 'Sun'. */

@@ -28,7 +28,12 @@ export type EntityKind =
   | 'screen'
   | 'userType'
   | 'event'
-  | 'hour';
+  | 'hour'
+  | 'region'
+  | 'utmContent'
+  | 'utmTerm'
+  | 'osVersion'
+  | 'host';
 
 /**
  * How an entity's value matches a stored key:
@@ -161,6 +166,8 @@ export const ENTITIES: EntityDef[] = [
     breakdowns: [
       { label: 'Landing pages', family: 'campaign_landing', side: 'key1', match: 'eq', linkTo: 'landing', metric: 'sessions', dimLabel: 'Landing page' },
       { label: 'Sources', family: 'campaign', side: 'key1', match: 'eq', linkTo: 'source', metric: 'sessions', dimLabel: 'Source' },
+      { label: 'Ad content', family: 'utm_content', side: 'key2', match: 'eq', linkTo: 'utmContent', metric: 'sessions', dimLabel: 'Ad content' },
+      { label: 'Terms', family: 'utm_term', side: 'key2', match: 'eq', linkTo: 'utmTerm', metric: 'sessions', dimLabel: 'Term' },
     ],
   },
   {
@@ -236,6 +243,7 @@ export const ENTITIES: EntityDef[] = [
     lead: 'sessions',
     kpis: SESSION_KPIS,
     breakdowns: [
+      { label: 'Regions', family: 'region', side: 'key1', match: 'eq', linkTo: 'region', metric: 'sessions', dimLabel: 'Region' },
       { label: 'Cities', family: 'geo', side: 'key1', match: 'eq', linkTo: 'city', metric: 'sessions', dimLabel: 'City' },
       { label: 'Pages', family: 'page_country', side: 'key2', match: 'eq', linkTo: 'page', metric: 'pageviews', dimLabel: 'Page' },
       { label: 'Landing pages', family: 'landing_country', side: 'key2', match: 'eq', linkTo: 'landing', metric: 'sessions', dimLabel: 'Landing page' },
@@ -284,7 +292,10 @@ export const ENTITIES: EntityDef[] = [
     mono: false,
     lead: 'sessions',
     kpis: SESSION_KPIS,
-    breakdowns: [{ label: 'Devices', family: 'device', side: 'key2', match: 'eq', linkTo: 'device', metric: 'sessions', dimLabel: 'Device' }],
+    breakdowns: [
+      { label: 'Versions', family: 'os_version', side: 'key1', match: 'eq', linkTo: 'osVersion', metric: 'sessions', dimLabel: 'Version' },
+      { label: 'Devices', family: 'device', side: 'key2', match: 'eq', linkTo: 'device', metric: 'sessions', dimLabel: 'Device' },
+    ],
   },
   { kind: 'browser', label: 'Browser', plural: 'Browsers', family: 'browser', side: 'key1', match: 'eq', mono: false, lead: 'sessions', kpis: SESSION_KPIS, breakdowns: [] },
   { kind: 'language', label: 'Language', plural: 'Languages', family: 'language', side: 'key1', match: 'eq', mono: false, lead: 'sessions', kpis: SESSION_KPIS, breakdowns: [] },
@@ -306,6 +317,55 @@ export const ENTITIES: EntityDef[] = [
     ],
   },
   { kind: 'hour', label: 'Hour of day', plural: 'Hours', family: 'hour', side: 'key1', match: 'eq', mono: false, lead: 'sessions', kpis: SESSION_KPIS, breakdowns: [] },
+  {
+    kind: 'region',
+    label: 'Region',
+    plural: 'Regions',
+    family: 'region',
+    side: 'key2',
+    match: 'eq',
+    mono: false,
+    lead: 'sessions',
+    kpis: SESSION_KPIS,
+    breakdowns: [{ label: 'Countries', family: 'region', side: 'key2', match: 'eq', linkTo: 'country', metric: 'sessions', dimLabel: 'Country' }],
+  },
+  {
+    kind: 'utmContent',
+    label: 'Ad content',
+    plural: 'Ad content',
+    family: 'utm_content',
+    side: 'key1',
+    match: 'eq',
+    mono: false,
+    lead: 'sessions',
+    kpis: SESSION_KPIS,
+    breakdowns: [{ label: 'Campaigns', family: 'utm_content', side: 'key1', match: 'eq', linkTo: 'campaign', metric: 'sessions', dimLabel: 'Campaign' }],
+  },
+  {
+    kind: 'utmTerm',
+    label: 'Term',
+    plural: 'Terms',
+    family: 'utm_term',
+    side: 'key1',
+    match: 'eq',
+    mono: false,
+    lead: 'sessions',
+    kpis: SESSION_KPIS,
+    breakdowns: [{ label: 'Campaigns', family: 'utm_term', side: 'key1', match: 'eq', linkTo: 'campaign', metric: 'sessions', dimLabel: 'Campaign' }],
+  },
+  {
+    kind: 'osVersion',
+    label: 'OS version',
+    plural: 'OS versions',
+    family: 'os_version',
+    side: 'key2',
+    match: 'eq',
+    mono: true,
+    lead: 'sessions',
+    kpis: SESSION_KPIS,
+    breakdowns: [{ label: 'Operating systems', family: 'os_version', side: 'key2', match: 'eq', linkTo: 'os', metric: 'sessions', dimLabel: 'OS' }],
+  },
+  { kind: 'host', label: 'Hostname', plural: 'Hostnames', family: 'host', side: 'key1', match: 'eq', mono: true, lead: 'pageviews', kpis: PAGE_KPIS, breakdowns: [] },
 ];
 
 export const ENTITY_BY_KIND: Record<EntityKind, EntityDef> = Object.fromEntries(ENTITIES.map((e) => [e.kind, e])) as Record<EntityKind, EntityDef>;

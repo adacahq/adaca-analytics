@@ -14,8 +14,8 @@ export interface BreakdownItem {
   total: number;
 }
 
-/** One breakdown of an entity: a ranked list whose rows open their own entity pages. */
-export default function BreakdownCard({ breakdown, query }: { breakdown: BreakdownItem; query: string }) {
+/** One breakdown of an entity: a ranked list whose rows open their own entity pages; "See all" opens the full table. */
+export default function BreakdownCard({ breakdown, query, seeAll }: { breakdown: BreakdownItem; query: string; seeAll?: string | null }) {
   const metric = METRIC_BY_KEY[breakdown.metric];
   const linkTo = breakdown.linkTo;
   const mono = linkTo ? ENTITY_BY_KIND[linkTo].mono : false;
@@ -26,7 +26,13 @@ export default function BreakdownCard({ breakdown, query }: { breakdown: Breakdo
         <span className="field-label truncate" style={{ margin: 0 }}>
           {breakdown.label}
         </span>
-        {breakdown.rows.length === 0 ? null : <span className="micro">top {breakdown.rows.length}</span>}
+        {breakdown.rows.length === 0 ? null : seeAll ? (
+          <a className="muted-link seeall" href={seeAll} title="Every row, every metric">
+            top {breakdown.rows.length} · see all
+          </a>
+        ) : (
+          <span className="micro">top {breakdown.rows.length}</span>
+        )}
       </div>
       <div className="wbody">
         <ListBody rows={breakdown.rows} metric={metric} dimLabel={breakdown.dimLabel} href={href} mono={mono} />

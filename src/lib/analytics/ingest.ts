@@ -11,7 +11,7 @@
 import { addDays, daysBetween, todayInZone } from './ranges';
 import { GA_METRICS, PAIR_ROWS_PER_DAY, REPORTS, REPORT_BY_KEY, capPerDay, gaDateToIso, mergeRows, normaliseKeys, type ReportKey, type RollupRow } from './reports';
 import { bqSql, datasetRef } from './bq-sql';
-import { clearRollups, writeRollups } from './rollups';
+import { clearRollups, familyRowCounts, writeRollups } from './rollups';
 import { runReport } from '@/lib/google/ga4';
 import { bigQuery } from '@/lib/google/bigquery';
 import { listKeyEvents } from '@/lib/google/admin';
@@ -52,11 +52,22 @@ function parseCursor(raw: string): Cursor {
 }
 
 /** The families a run ingests: singles always, pairs only when the site has
- *  drill-down on; a 'pairs' run adds drill-down to an already-backfilled window. */
+ *  drill-down on; a 'pairs' run adds drill-down to an already-backfilled window;
+ *  an 'only:' run names its families (those added after the site's backfill). */
 export function familiesFor(site: Site, scope: RunScope = 'all'): ReportKey[] {
-  return REPORTS.filter((r) => (site.primary_source === 'bigquery' ? r.bq : true))
-    .filter((r) => (r.pair ? site.drilldown === 1 || scope === 'pairs' : scope !== 'pairs'))
-    .map((r) => r.key);
+  const supported = REPORTS.filter((r) => (site.primary_source === 'bigquery' ? r.bq : true));
+  if (scope.startsWith('only:')) {
+    const wanted = new Set(scope.slice(5).split(',').filter(Boolean));
+    return supported.filter((r) => wanted.has(r.key)).map((r) => r.key);
+  }
+  return supported.filter((r) => (r.pair ? site.drilldown === 1 || scope === 'pairs' : scope !== 'pairs')).map((r) => r.key);
+}
+
+/** Families the site should hold but has no rows for — added to the registry after its backfill. */
+export async function missingFamilies(site: Site): Promise<ReportKey[]> {
+  if (!site.last_ingested_date) return [];
+  const counts = await familyRowCounts(site.id);
+  return familiesFor(site, 'all').filter((k) => !counts.get(k));
 }
 
 /** Total units a run needs (families × chunks), for progress display. */

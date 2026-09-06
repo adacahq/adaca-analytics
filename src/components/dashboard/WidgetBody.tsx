@@ -9,9 +9,9 @@ import DataTable, { type Column } from '@/components/ui/DataTable';
 import { DATASET_BY_KEY, drillValue, kpiDrill, type Dataset } from '@/lib/analytics/catalog';
 import { entityHref } from '@/lib/analytics/entities';
 import { METRIC_BY_KEY, isMetricKey, type MetricDef } from '@/lib/analytics/metrics';
-import { fmtBucket, fmtDelta, fmtInt, fmtPercent } from '@/lib/format';
+import { fmtBucket, fmtDelta, fmtHourLong, fmtInt, fmtPercent } from '@/lib/format';
 import type { Bucket, RankedRow, WidgetConfig, WidgetData, WidgetInstance } from '@/lib/dashboard/types';
-import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useCompact, useNarrow, usePeriodQuery } from './chart-helpers';
+import { ChartFrame, ChartTip, LinkTick, SERIES, axisTick, bucketNoun, clickedName, useCompact, useCompareCaption, useNarrow, usePeriodQuery } from './chart-helpers';
 
 /** Where a ranked row opens; null keeps the mark plain. */
 export type Href = ((row: { key: string; sub?: string; raw?: string }) => string | null) | null;
@@ -59,6 +59,7 @@ function Sparkline({ values }: { values: number[] }) {
 }
 
 function KpiBody({ value, previous, spark, metric, live, href }: { value: number; previous: number | null; spark: number[]; metric: MetricDef; live: boolean; href?: string | null }) {
+  const caption = useCompareCaption();
   const delta = previous !== null ? fmtDelta(value, previous) : null;
   const dir = previous === null || previous === value ? 'flat' : value > previous ? 'up' : 'down';
   const good = metric.goodDirection === null ? 'flat' : dir === 'flat' ? 'flat' : (dir === 'up') === (metric.goodDirection === 'up') ? 'up' : 'down';
@@ -73,10 +74,10 @@ function KpiBody({ value, previous, spark, metric, live, href }: { value: number
         ) : delta !== null ? (
           <span className={`delta ${good}`}>
             {delta}
-            <small>vs prev</small>
+            <small>{caption}</small>
           </span>
         ) : previous !== null ? (
-          <span className="delta">— vs prev</span>
+          <span className="delta">— {caption}</span>
         ) : null}
         {href ? <span className="kopen">open ↗</span> : null}
       </div>
@@ -194,6 +195,7 @@ function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: Me
   const router = useRouter();
   if (data.length === 0) return <Centered>No data for this period</Centered>;
   const fmtX = (v: string) => (bucket && bucket !== 'minute' ? fmtBucket(v, bucket) : bucket === 'minute' ? `${v}m` : v);
+  const fmtTitle = (v: string) => (bucket === 'hour' ? fmtHourLong(v) : fmtX(v));
   const compare = data.some((d) => d.previous !== undefined);
   const byName = new Map(data.map((d) => [d.name, d]));
   const openName = narrow ? narrow : (name: string) => {
@@ -216,7 +218,7 @@ function ColumnBody({ data, metric, bucket, narrow }: { data: Mark[]; metric: Me
           <CartesianGrid vertical={false} stroke="var(--line)" />
           <XAxis dataKey="name" tick={(p) => <LinkTick {...p} format={fmtX} onOpen={clickable ? openName : null} />} tickLine={false} axisLine={{ stroke: 'var(--line)' }} interval="preserveStartEnd" minTickGap={18} />
           <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-          <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip title={fmtX} row={(v, k) => [metric.format(v), k === 'previous' ? 'Previous' : metric.short]} hint={hint} />} />
+          <Tooltip cursor={{ fill: 'var(--ghost)' }} content={<ChartTip title={fmtTitle} row={(v, k) => [metric.format(v), k === 'previous' ? 'Compared' : metric.short]} hint={hint} />} />
           {compare ? <Bar dataKey="previous" fill={SERIES[2]} opacity={0.45} isAnimationActive={false} /> : null}
           <Bar dataKey="value" fill={SERIES[0]} radius={[3, 3, 0, 0]} isAnimationActive={false} />
         </BarChart>
@@ -270,6 +272,7 @@ function LineBody({ points, metric, bucket, narrow }: { points: Mark[]; metric: 
   if (points.length === 0) return <Centered>No data for this period</Centered>;
   const compare = points.some((p) => p.previous !== undefined);
   const fmtX = (v: string) => (bucket === 'minute' ? `${v}m` : fmtBucket(v, bucket));
+  const fmtTitle = (v: string) => (bucket === 'hour' ? fmtHourLong(v) : fmtX(v));
   return (
     <ChartFrame clickable={!!narrow}>
       <ResponsiveContainer width="100%" height="100%">
@@ -284,7 +287,7 @@ function LineBody({ points, metric, bucket, narrow }: { points: Mark[]; metric: 
           <CartesianGrid vertical={false} stroke="var(--line)" />
           <XAxis dataKey="name" tick={(p) => <LinkTick {...p} format={fmtX} onOpen={narrow ?? null} />} tickLine={false} axisLine={{ stroke: 'var(--line)' }} interval="preserveStartEnd" minTickGap={24} />
           <YAxis tick={axisTick} tickLine={false} axisLine={false} allowDecimals={false} tickFormatter={(v) => metric.format(Number(v), true)} />
-          <Tooltip content={<ChartTip title={fmtX} row={(v, k) => [metric.format(v), k === 'previous' ? 'Previous period' : metric.label]} hint={narrow ? narrowHint(bucket) : null} />} />
+          <Tooltip content={<ChartTip title={fmtTitle} row={(v, k) => [metric.format(v), k === 'previous' ? 'Compared period' : metric.label]} hint={narrow ? narrowHint(bucket) : null} />} />
           {compare ? <Line type="monotone" dataKey="previous" stroke={SERIES[2]} strokeWidth={1.5} strokeDasharray="4 4" dot={false} isAnimationActive={false} /> : null}
           <Line type="monotone" dataKey="value" stroke={SERIES[0]} strokeWidth={2} dot={false} activeDot={{ r: 4 }} isAnimationActive={false} />
         </LineChart>
@@ -294,7 +297,7 @@ function LineBody({ points, metric, bucket, narrow }: { points: Mark[]; metric: 
 }
 
 /* ── Table ───────────────────────────────────────────────────────── */
-function TableBody({ columns, rows, href }: { columns: { key: string; label: string; metric: boolean }[]; rows: Record<string, string | number>[]; href?: Href }) {
+export function TableBody({ columns, rows, href }: { columns: { key: string; label: string; metric: boolean }[]; rows: Record<string, string | number>[]; href?: Href }) {
   if (rows.length === 0) return <Centered>No data for this period</Centered>;
   const cols: Column<Record<string, string | number>>[] = columns.map((c) => ({
     key: c.key,
@@ -321,6 +324,7 @@ function TableBody({ columns, rows, href }: { columns: { key: string; label: str
           </span>
         );
       }
+      if (c.key === 'share') return fmtPercent(Number(r.share));
       const m = isMetricKey(c.key) ? METRIC_BY_KEY[c.key] : null;
       return m ? m.format(Number(r[c.key])) : fmtInt(Number(r[c.key]));
     },

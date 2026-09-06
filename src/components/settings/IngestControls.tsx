@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import Select from '@/components/ui/Select';
 import { useConfirm } from '@/components/ui/Confirm';
-import { addDrilldownData, backfillSite, refreshNow } from '@/lib/setup/actions';
+import { addDrilldownData, backfillMissingFamilies, backfillSite, refreshNow } from '@/lib/setup/actions';
 import type { Site } from '@/lib/db/sites';
 
 export interface PairCoverage {
@@ -14,8 +14,8 @@ export interface PairCoverage {
   to: string | null;
 }
 
-/** Per-site controls on Settings → Ingestion: refresh the trailing days, add drill-down data, or re-backfill. */
-export default function IngestControls({ site, busy, pairs }: { site: Site; busy: boolean; pairs: PairCoverage }) {
+/** Per-site controls on Settings → Ingestion: refresh the trailing days, add drill-down data or newly added reports, or re-backfill. */
+export default function IngestControls({ site, busy, pairs, missing }: { site: Site; busy: boolean; pairs: PairCoverage; missing: string[] }) {
   const router = useRouter();
   const confirm = useConfirm();
   const [days, setDays] = useState(String(site.backfill_days));
@@ -49,6 +49,22 @@ export default function IngestControls({ site, busy, pairs }: { site: Site; busy
     });
   }
 
+  async function addMissing() {
+    const ok = await confirm({
+      title: `Add ${missing.length} new ${missing.length === 1 ? 'report' : 'reports'} to ${site.name}?`,
+      body: `${missing.join(', ')}: report families added to the app after this site was backfilled. They are ingested over the days the site already holds; nothing else is touched.`,
+      confirmLabel: 'Add reports',
+    });
+    if (!ok) return;
+    startTransition(async () => {
+      const r = await backfillMissingFamilies(site.id);
+      if (r.ok) {
+        toast.success('New reports queued');
+        router.refresh();
+      } else toast.error(r.error);
+    });
+  }
+
   async function backfill() {
     const ok = await confirm({
       title: `Backfill ${site.name}?`,
@@ -73,6 +89,11 @@ export default function IngestControls({ site, busy, pairs }: { site: Site; busy
       <button type="button" className="btn btn-ghost btn-sm" disabled={pending || busy} onClick={drilldown} title={pairs.rows ? `${pairs.rows.toLocaleString()} drill-down rows` : 'No drill-down data yet'}>
         {pairs.rows ? 'Rebuild drill-down data' : 'Add drill-down data'}
       </button>
+      {missing.length > 0 ? (
+        <button type="button" className="btn btn-primary btn-sm" disabled={pending || busy} onClick={addMissing} title={missing.join(', ')}>
+          Add {missing.length} new {missing.length === 1 ? 'report' : 'reports'}
+        </button>
+      ) : null}
       <Select
         value={days}
         onChange={setDays}

@@ -366,6 +366,7 @@ export default function WidgetBuilder({
                 onChange={(v) => patch({ bucket: (v || undefined) as WidgetConfig['bucket'] })}
                 options={[
                   { value: '', label: 'Automatic' },
+                  ...(ds.report === 'totals' ? [{ value: 'hour', label: 'Hour (a day or two of site totals)' }] : []),
                   { value: 'day', label: 'Day' },
                   { value: 'week', label: 'Week' },
                   { value: 'month', label: 'Month' },

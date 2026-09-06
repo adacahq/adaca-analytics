@@ -5,6 +5,8 @@ import { listDashboards } from '@/lib/db/dashboards';
 import { currentSite } from '@/lib/context';
 import { todayInZone } from '@/lib/analytics/ranges';
 import { ensureDefaultDashboards } from '@/lib/dashboard/seed';
+import { listSegments } from '@/lib/db/segments';
+import { earliestDate } from '@/lib/analytics/rollups';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,15 +17,18 @@ export const dynamic = 'force-dynamic';
  */
 export default async function AppLayout({ children }: { children: ReactNode }) {
   await ensureDefaultDashboards();
-  const [sites, dashboards] = await Promise.all([listSites(), listDashboards()]);
+  const [sites, dashboards, segments] = await Promise.all([listSites(), listDashboards(), listSegments()]);
   const site = await currentSite(sites);
   const today = todayInZone(site?.timezone ?? 'UTC');
+  const earliest = site ? await earliestDate(site.id) : null;
 
   return (
     <AppShell
       sites={sites.map((s) => ({ id: s.id, name: s.name, timezone: s.timezone, hasRealtime: !!s.ga_property_id }))}
       currentSiteId={site?.id ?? null}
       today={today}
+      earliest={earliest}
+      segments={segments.map((s) => ({ id: s.id, name: s.name, kind: s.kind, op: s.op, value: s.value }))}
       dashboards={dashboards.map((d) => ({ slug: d.slug, name: d.name, kind: d.kind }))}
     >
       {children}

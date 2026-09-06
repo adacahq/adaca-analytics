@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import {
   addDays,
   autoBucket,
+  compareCaption,
+  compareNoun,
+  comparisonPeriod,
   daysBetween,
+  eachHour,
   endOfMonth,
+  isHourly,
   previousPeriod,
   rangeToQuery,
   resolveRange,
@@ -42,7 +47,31 @@ describe('ranges', () => {
 
   it('accepts custom bounds in either order', () => {
     const r = resolveRange({ from: '2026-03-10', to: '2026-03-01', compare: '1' }, TODAY);
-    expect(r).toMatchObject({ key: 'custom', from: '2026-03-01', to: '2026-03-10', compare: true });
+    expect(r).toMatchObject({ key: 'custom', from: '2026-03-01', to: '2026-03-10', compare: 'prev', against: { from: '2026-02-19', to: '2026-02-28' } });
+  });
+
+  it('offers year to date and all time', () => {
+    expect(resolveRange({ range: 'ytd' }, TODAY)).toMatchObject({ from: '2026-01-01', to: TODAY });
+    expect(resolveRange({ range: 'all' }, TODAY, { earliest: '2025-11-20' })).toMatchObject({ from: '2025-11-20', to: TODAY });
+    // No rows yet: the last twelve months stand in.
+    expect(resolveRange({ range: 'all' }, TODAY, { earliest: null })).toMatchObject({ from: '2025-09-06', to: TODAY });
+  });
+
+  it('compares against the period before, the year before, or any window', () => {
+    const base = { range: '7d' };
+    expect(resolveRange({ ...base, compare: 'prev' }, TODAY)).toMatchObject({ compare: 'prev', against: { from: '2026-08-22', to: '2026-08-28' } });
+    expect(resolveRange({ ...base, compare: 'yoy' }, TODAY)).toMatchObject({ compare: 'yoy', against: { from: '2025-08-29', to: '2025-09-04' } });
+    expect(resolveRange({ ...base, compare: '2026-01-01..2026-01-07' }, TODAY)).toMatchObject({ compare: 'custom', against: { from: '2026-01-01', to: '2026-01-07' } });
+    expect(resolveRange({ ...base, compare: 'nope' }, TODAY)).toMatchObject({ compare: null, against: null });
+    const yoy = resolveRange({ ...base, compare: 'yoy' }, TODAY);
+    expect(comparisonPeriod(yoy)).toEqual(yoy.against);
+    expect(comparisonPeriod(resolveRange(base, TODAY))).toEqual(previousPeriod(resolveRange(base, TODAY)));
+    expect(compareNoun(yoy)).toBe('the same period last year');
+    expect(compareNoun(resolveRange({ ...base, compare: '2026-01-01..2026-01-07' }, TODAY))).toBe('2026-01-01 to 2026-01-07');
+    expect(compareCaption('yoy')).toBe('vs last year');
+    expect(isHourly({ from: TODAY, to: TODAY })).toBe(true);
+    expect(isHourly({ from: '2026-09-01', to: TODAY })).toBe(false);
+    expect(eachHour('2026-09-05', '2026-09-05', 2)).toEqual(['2026-09-05T00', '2026-09-05T01', '2026-09-05T02']);
   });
 
   it('computes the previous period of equal length', () => {
@@ -54,8 +83,11 @@ describe('ranges', () => {
     const r = resolveRange({ range: '90d', compare: '1' }, TODAY);
     const q = rangeToQuery(r);
     expect(q.get('range')).toBe('90d');
-    expect(q.get('compare')).toBe('1');
+    expect(q.get('compare')).toBe('prev');
     expect(resolveRange(Object.fromEntries(q), TODAY)).toEqual(r);
+    const c = resolveRange({ range: '7d', compare: '2026-01-01..2026-01-07' }, TODAY);
+    expect(rangeToQuery(c).get('compare')).toBe('2026-01-01..2026-01-07');
+    expect(resolveRange(Object.fromEntries(rangeToQuery(c)), TODAY)).toEqual(c);
     // The default preset is omitted so plain links stay clean.
     expect(rangeToQuery(resolveRange({}, TODAY)).toString()).toBe('');
   });

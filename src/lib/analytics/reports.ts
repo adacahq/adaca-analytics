@@ -22,7 +22,12 @@ export type SingleKey =
   | 'screen'
   | 'user_type'
   | 'event'
-  | 'hour';
+  | 'hour'
+  | 'region'
+  | 'utm_content'
+  | 'utm_term'
+  | 'os_version'
+  | 'host';
 
 /**
  * Pair families: two dimensions per row, the precomputed basis of drill-down.
@@ -80,6 +85,14 @@ export const REPORTS: ReportFamily[] = [
   { key: 'user_type', label: 'New vs returning', gaDimensions: ['newVsReturning'], keyLabels: ['User type'], bq: true, pair: false, level: 'session' },
   { key: 'event', label: 'Events', gaDimensions: ['eventName', 'isKeyEvent'], keyLabels: ['Event', 'Key event'], bq: true, pair: false, level: 'event' },
   { key: 'hour', label: 'Hour of day', gaDimensions: ['hour'], keyLabels: ['Hour'], bq: true, pair: false, level: 'event' },
+  // Added after the first release (2026-09): regions, the two remaining UTM
+  // parameters, OS versions and hostnames. Settings → Ingestion offers to
+  // backfill families a site does not hold yet.
+  { key: 'region', label: 'Regions', gaDimensions: ['country', 'region'], keyLabels: ['Country', 'Region'], bq: true, pair: false, level: 'session' },
+  { key: 'utm_content', label: 'Ad content', gaDimensions: ['sessionManualAdContent', 'sessionCampaignName'], keyLabels: ['Ad content', 'Campaign'], bq: true, pair: false, level: 'session' },
+  { key: 'utm_term', label: 'Terms', gaDimensions: ['sessionManualTerm', 'sessionCampaignName'], keyLabels: ['Term', 'Campaign'], bq: true, pair: false, level: 'session' },
+  { key: 'os_version', label: 'OS versions', gaDimensions: ['operatingSystem', 'operatingSystemVersion'], keyLabels: ['OS', 'Version'], bq: true, pair: false, level: 'session' },
+  { key: 'host', label: 'Hostnames', gaDimensions: ['hostName'], keyLabels: ['Hostname'], bq: true, pair: false, level: 'event' },
   // Pair families — all verified compatible with the eight metrics + date (2026-09-06).
   { key: 'sm_landing', label: 'Source / medium × landing page', gaDimensions: ['sessionSourceMedium', 'landingPage'], keyLabels: ['Source / medium', 'Landing page'], bq: true, pair: true, level: 'session' },
   { key: 'sm_page', label: 'Source / medium × page', gaDimensions: ['sessionSourceMedium', 'pagePath'], keyLabels: ['Source / medium', 'Page'], bq: true, pair: true, level: 'event' },

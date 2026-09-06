@@ -53,6 +53,18 @@ export async function rollupSpan(siteId: string): Promise<{ from: string | null;
   return { from: r?.from_date ?? null, to: r?.to_date ?? null, rows: all?.n ?? 0 };
 }
 
+/** Rows per family for a site (which families it holds at all). */
+export async function familyRowCounts(siteId: string): Promise<Map<string, number>> {
+  const { results } = await db().prepare('SELECT report, COUNT(*) AS n FROM rollups WHERE site_id = ? GROUP BY report').bind(siteId).all<{ report: string; n: number }>();
+  return new Map(results.map((r) => [r.report, r.n]));
+}
+
+/** The first day a site holds (for the "All time" preset), or null before its first backfill. */
+export async function earliestDate(siteId: string): Promise<string | null> {
+  const r = await db().prepare("SELECT MIN(date) AS d FROM rollups WHERE site_id = ? AND report = 'totals'").bind(siteId).first<{ d: string | null }>();
+  return r?.d ?? null;
+}
+
 /** Coverage of the pair families (drill-down) for a site: the span and row count. */
 export async function pairSpan(siteId: string): Promise<{ from: string | null; to: string | null; rows: number }> {
   const keys = PAIRS.map((p) => `'${p.key}'`).join(', ');

@@ -43,7 +43,7 @@ export default function DashboardGrid({
   const [, startTransition] = useTransition();
   const router = useRouter();
   const params = useSearchParams();
-  const range = { range: params?.get('range'), from: params?.get('from'), to: params?.get('to'), compare: params?.get('compare') };
+  const range = { range: params?.get('range'), from: params?.get('from'), to: params?.get('to'), compare: params?.get('compare'), seg: params?.get('seg') };
 
   function persist(next: WidgetInstance[]) {
     startTransition(async () => {

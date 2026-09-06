@@ -16,6 +16,7 @@ export default function WidgetCard({
   onRemove,
   onMove,
   canMove = [true, true],
+  seeAll,
   loading,
   error,
   children,
@@ -29,6 +30,8 @@ export default function WidgetCard({
   /** Small screens: move one step up or down the reading order instead of dragging. */
   onMove?: (dir: -1 | 1) => void;
   canMove?: [boolean, boolean];
+  /** The explore page with every row and metric of this widget's data. */
+  seeAll?: string | null;
   loading?: boolean;
   error?: string | null;
   children: ReactNode;
@@ -49,6 +52,11 @@ export default function WidgetCard({
           </span>
           {caption ? <span className="micro truncate hidden sm:inline">{caption}</span> : null}
         </span>
+        {!editing && seeAll ? (
+          <a className="muted-link seeall" href={seeAll} title="Every row, every metric">
+            See all
+          </a>
+        ) : null}
         {editing && (
           <span className="flex shrink-0 items-center gap-3">
             {onMove ? (

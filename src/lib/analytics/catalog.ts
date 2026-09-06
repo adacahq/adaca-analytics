@@ -36,8 +36,8 @@ export interface Dataset {
   /** Which stored key carries the dimension shown (key1 unless noted). */
   dim: 'key1' | 'key2' | 'none';
   dimLabel: string;
-  /** Optional second dimension shown as a sub-label (pages: title; sources: medium). */
-  subDim?: 'key2';
+  /** Optional second dimension shown as a sub-label (pages: title; sources: medium; regions: country). */
+  subDim?: 'key1' | 'key2';
   /** Fixed filter applied to every query (events → key events only). */
   where?: { dim: 'key1' | 'key2'; value: string };
   metrics: MetricKey[];
@@ -84,16 +84,21 @@ export const DATASETS: Dataset[] = [
   { key: 'acquisition.mediums', category: 'acquisition', label: 'Mediums', description: 'How a visit arrived: organic, referral, cpc, email…', report: 'source', dim: 'key2', dimLabel: 'Medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'medium', keyKinds: { key1: 'source' } },
   { key: 'acquisition.sourceMedium', category: 'acquisition', label: 'Source / medium', description: 'Source and medium together.', report: 'source', dim: 'key1', subDim: 'key2', dimLabel: 'Source / medium', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'sourceMedium', keyKinds: { key1: 'source', key2: 'medium' } },
   { key: 'acquisition.campaigns', category: 'acquisition', label: 'Campaigns', description: 'Tagged campaigns (utm_campaign).', report: 'campaign', dim: 'key1', subDim: 'key2', dimLabel: 'Campaign', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'campaign', keyKinds: { key2: 'source' } },
+  { key: 'acquisition.utmContent', category: 'acquisition', label: 'Ad content', description: 'utm_content of tagged links, with its campaign.', report: 'utm_content', dim: 'key1', subDim: 'key2', dimLabel: 'Ad content', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'utmContent', keyKinds: { key2: 'campaign' } },
+  { key: 'acquisition.utmTerm', category: 'acquisition', label: 'Terms', description: 'utm_term of tagged links (paid keywords), with its campaign.', report: 'utm_term', dim: 'key1', subDim: 'key2', dimLabel: 'Term', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'utmTerm', keyKinds: { key2: 'campaign' } },
   { key: 'acquisition.referrers', category: 'acquisition', label: 'Referrers', description: 'Referring hostnames on pageviews.', report: 'referrer', dim: 'key1', dimLabel: 'Referrer', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'referrer' },
   // Content
   { key: 'content.pages', category: 'content', label: 'Pages viewed', description: 'Pageviews and engagement by page path.', report: 'page', dim: 'key1', subDim: 'key2', dimLabel: 'Page', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'page', keyKinds: { key2: 'title' } },
   { key: 'content.titles', category: 'content', label: 'Page titles', description: 'The same, by page title.', report: 'page', dim: 'key2', dimLabel: 'Title', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'title', keyKinds: { key1: 'page' } },
   { key: 'content.landing', category: 'content', label: 'Landing pages', description: 'The first page of each visit.', report: 'landing', dim: 'key1', dimLabel: 'Landing page', metrics: SESSION_METRICS, defaultMetric: 'sessions', charts: RANKED, live: false, drill: 'landing' },
+  { key: 'content.hosts', category: 'content', label: 'Hostnames', description: 'Which hostnames of the property were viewed (multi-domain properties).', report: 'host', dim: 'key1', dimLabel: 'Hostname', metrics: PAGE_METRICS, defaultMetric: 'pageviews', charts: RANKED, live: false, drill: 'host' },
   // Audience
   { key: 'audience.countries', category: 'audience', label: 'Countries', description: 'Visits by country.', report: 'geo', dim: 'key1', dimLabel: 'Country', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'country', keyKinds: { key2: 'city' } },
+  { key: 'audience.regions', category: 'audience', label: 'Regions', description: 'States and regions, with their country.', report: 'region', dim: 'key2', subDim: 'key1', dimLabel: 'Region', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'region', keyKinds: { key1: 'country' } },
   { key: 'audience.cities', category: 'audience', label: 'Cities', description: 'Visits by city.', report: 'geo', dim: 'key2', dimLabel: 'City', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'city', keyKinds: { key1: 'country' } },
   { key: 'audience.devices', category: 'audience', label: 'Devices', description: 'Desktop, mobile, tablet.', report: 'device', dim: 'key1', dimLabel: 'Device', metrics: SESSION_METRICS, defaultMetric: 'users', charts: ['donut', ...RANKED.filter((c) => c !== 'donut')], live: false, drill: 'device', keyKinds: { key2: 'os' } },
   { key: 'audience.os', category: 'audience', label: 'Operating systems', description: 'Windows, macOS, iOS, Android…', report: 'device', dim: 'key2', dimLabel: 'OS', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'os', keyKinds: { key1: 'device' } },
+  { key: 'audience.osVersions', category: 'audience', label: 'OS versions', description: 'Operating system versions, with their OS.', report: 'os_version', dim: 'key2', subDim: 'key1', dimLabel: 'Version', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'osVersion', keyKinds: { key1: 'os' } },
   { key: 'audience.browsers', category: 'audience', label: 'Browsers', description: 'Chrome, Safari, Firefox…', report: 'browser', dim: 'key1', dimLabel: 'Browser', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'browser' },
   { key: 'audience.languages', category: 'audience', label: 'Languages', description: 'Browser language of visitors.', report: 'language', dim: 'key1', dimLabel: 'Language', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'language' },
   { key: 'audience.screens', category: 'audience', label: 'Screen resolutions', description: 'Viewport sizes (GA4 API sites only).', report: 'screen', dim: 'key1', dimLabel: 'Resolution', metrics: SESSION_METRICS, defaultMetric: 'users', charts: RANKED, live: false, drill: 'screen' },
@@ -159,6 +164,26 @@ export function kpiDrill(ds: Dataset, filters: { dim: 'key1' | 'key2'; op: strin
     if (kind) return { kind, value: f.value };
   }
   return null;
+}
+
+/** The plain dataset that lists an entity kind (Sources for 'source', Pages for 'page'…). */
+export function datasetForKind(kind: EntityKind): Dataset | undefined {
+  return DATASETS.find((d) => !d.live && !d.otherLabel && d.drill === kind);
+}
+
+/**
+ * The explore page of a dataset: every row, every metric, sortable and
+ * downloadable. `query` is the period (+ segment) to carry; `filters` are a
+ * widget's own, carried as JSON.
+ */
+export function exploreHref(datasetKey: string, opts: { query?: string; metric?: string; filters?: { dim: 'key1' | 'key2'; op: string; value: string }[]; seg?: string } = {}): string {
+  const q = new URLSearchParams(opts.query ?? '');
+  if (opts.metric) q.set('metric', opts.metric);
+  const live = (opts.filters ?? []).filter((f) => f.value);
+  if (live.length) q.set('f', JSON.stringify(live));
+  if (opts.seg) q.set('seg', opts.seg);
+  const qs = q.toString();
+  return `/explore/${encodeURIComponent(datasetKey)}${qs ? `?${qs}` : ''}`;
 }
 
 /** Labels of key1 and key2 as the filter UI shows them: pair datasets name both sides. */

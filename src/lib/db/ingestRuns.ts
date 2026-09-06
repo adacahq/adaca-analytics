@@ -3,8 +3,19 @@ import { nanoid } from './nanoid';
 
 export type RunKind = 'backfill' | 'refresh' | 'manual';
 export type RunStatus = 'queued' | 'running' | 'done' | 'failed';
-/** Which families a run ingests: everything, or only the pair families (adding drill-down to an existing window). */
-export type RunScope = 'all' | 'pairs';
+/**
+ * Which families a run ingests: everything; only the pair families (adding
+ * drill-down to an existing window); or an explicit list, `only:a,b,c`
+ * (adding families introduced after a site was backfilled).
+ */
+export type RunScope = 'all' | 'pairs' | `only:${string}`;
+
+/** Human label of a scope for the runs table. */
+export function scopeLabel(scope: RunScope | string): string {
+  if (scope === 'pairs') return 'drill-down';
+  if (scope.startsWith('only:')) return `new reports (${scope.slice(5).split(',').length})`;
+  return 'all';
+}
 
 export interface IngestRun {
   id: string;

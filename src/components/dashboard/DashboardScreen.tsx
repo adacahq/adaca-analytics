@@ -5,7 +5,9 @@ import { listSites } from '@/lib/db/sites';
 import { getDashboard } from '@/lib/db/dashboards';
 import { listActiveRuns } from '@/lib/db/ingestRuns';
 import { unitsFor } from '@/lib/analytics/ingest';
-import { currentSite, rangeFor, rangeParams, type SearchParams } from '@/lib/context';
+import { currentSite, rangeFor, rangeParams, segmentFor, type SearchParams } from '@/lib/context';
+import { compareNoun } from '@/lib/analytics/ranges';
+import { segmentLabel } from '@/lib/analytics/segments';
 import { fmtDay } from '@/lib/format';
 
 /**
@@ -19,7 +21,9 @@ export default async function DashboardScreen({ slug, searchParams }: { slug: st
   const dashboard = await getDashboard(slug);
   if (!dashboard) notFound();
 
-  const range = rangeFor(site, rangeParams(searchParams));
+  const params = rangeParams(searchParams);
+  const range = await rangeFor(site, params);
+  const segment = segmentFor(params);
   const active = await listActiveRuns(site.id);
   const progress = active.map((r) => ({
     id: r.id,
@@ -35,7 +39,7 @@ export default async function DashboardScreen({ slug, searchParams }: { slug: st
   const isRealtime = dashboard.slug === 'realtime';
   const lede = isRealtime
     ? `${site.name} · the last 30 minutes, refreshed every half minute.`
-    : `${site.name} · ${fmtDay(range.from)} to ${fmtDay(range.to)}${range.compare ? ', compared with the period before' : ''}.`;
+    : `${site.name} · ${fmtDay(range.from)} to ${fmtDay(range.to)}${range.compare ? `, compared with ${compareNoun(range, fmtDay)}` : ''}${segment ? ` · ${segmentLabel(segment)}` : ''}.`;
 
   return (
     <div>

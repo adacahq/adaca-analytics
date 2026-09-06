@@ -1258,3 +1258,49 @@ a.kpi:hover .kopen { opacity: 1; }
   .pick { padding-top: 16px; padding-bottom: 16px; }
   .mcard .macts .muted-link { padding: 8px 0; }
 }
+
+/* ── Topbar: period + filter in the middle, the live count on the right ──
+   The middle group centres between the switcher and the controls; on
+   phones it keeps both buttons but drops their mono labels (above). */
+.tbmid { display: flex; flex: 1; align-items: center; justify-content: center; gap: 2px; padding: 0 8px; min-width: 0; }
+.tbbtn.filter.on b { color: var(--accent); }
+.tbx { flex: none; width: 24px; height: 24px; margin-left: -4px; border: none; border-radius: 50%; background: none; color: var(--muted); font-size: 11px; cursor: pointer; transition: color 0.25s, background 0.25s; position: absolute; right: -22px; top: 50%; transform: translateY(-50%); }
+.tbx:hover { color: var(--fg); background: var(--ghost); }
+.tbdrop:has(> .tbx) { margin-right: 22px; }
+.tbctl.live { margin-right: 6px; }
+.tblive { display: inline-flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 8px; text-decoration: none; color: var(--fg); transition: background 0.25s; }
+.tblive:hover { background: var(--ghost); }
+.tblive b { font-family: var(--font-mono); font-size: 12px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.tblive .rag { width: 7px; height: 7px; }
+/* Shortcut hints beside presets: a hairline key cap, hidden on touch. */
+kbd.kb { display: inline-block; margin-left: 8px; padding: 0 5px; min-width: 16px; text-align: center; font-family: var(--font-mono); font-size: 8.5px; letter-spacing: 0; line-height: 15px; border: 1px solid var(--card-line); border-radius: 4px; color: var(--muted); text-transform: uppercase; vertical-align: 1px; }
+.plabel kbd.kb { margin-left: 6px; }
+.seg button.on kbd.kb { border-color: color-mix(in srgb, var(--accent) 45%, transparent); }
+@media (pointer: coarse) { kbd.kb { display: none; } }
+/* The filter panel: saved segments as rows with a delete, then the fields. */
+.tbpanel.filter { min-width: 360px; }
+.tbpanel .srows { display: flex; flex-direction: column; gap: 2px; margin: -2px 0 2px; }
+.tbpanel .srow { display: flex; align-items: center; gap: 4px; }
+.tbpanel .srow .tbrow { flex: 1; min-width: 0; flex-direction: column; align-items: flex-start; gap: 1px; }
+.tbpanel .srow .tbrow small { font-family: var(--font-mono); font-size: 10px; color: var(--muted); max-width: 100%; }
+.tbpanel .srow.on .tbrow { color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+.tbpanel .srow .muted-link { flex: none; padding: 6px 8px; }
+.tbpanel.filter .field input { width: 100%; }
+@media (max-width: 640px) {
+  .tbmid { padding: 0 2px; gap: 0; }
+  .tbbtn b { max-width: 26vw; }
+  .tbx { right: -18px; }
+  .tbdrop:has(> .tbx) { margin-right: 16px; }
+  .tblive { padding: 6px 6px; gap: 6px; }
+  .tblive .tbsect { display: none; }
+  .tbpanel.filter { min-width: 0; }
+}
+
+/* ── "See all": the explore page behind a card, shown on hover (always on touch) ── */
+.chart-head .seeall { font-family: var(--font-mono); font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; opacity: 0; transition: opacity 0.25s, color 0.25s; }
+.chart-card:hover .seeall, .chart-card:focus-within .seeall, .seeall:focus-visible { opacity: 1; }
+@media (pointer: coarse) { .chart-head .seeall { opacity: 1; } }
+.explore .tools { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+.explore .tools .field { flex: 1; min-width: 200px; max-width: 360px; }
+.explore .tscroll { max-height: min(72vh, 900px); overflow: auto; }
+.explore .dtable thead th { position: sticky; top: 0; z-index: 1; background: var(--card); }

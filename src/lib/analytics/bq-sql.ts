@@ -101,9 +101,12 @@ function base(site: BqSite, from: string, to: string): string {
     (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'source') AS p_source,
     (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'medium') AS p_medium,
     (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'campaign') AS p_campaign,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'content') AS p_content,
+    (SELECT value.string_value FROM UNNEST(event_params) WHERE key = 'term') AS p_term,
     traffic_source.source AS u_source, traffic_source.medium AS u_medium, traffic_source.name AS u_campaign,
-    device.category AS device_category, device.operating_system AS os, device.web_info.browser AS browser, device.language AS language,
-    geo.country AS country, geo.city AS city
+    device.category AS device_category, device.operating_system AS os, device.operating_system_version AS os_version,
+    device.web_info.browser AS browser, device.language AS language,
+    geo.country AS country, geo.region AS region, geo.city AS city
   FROM \`${ref}.events_*\`
   WHERE (_TABLE_SUFFIX BETWEEN '${f}' AND '${t}' OR _TABLE_SUFFIX BETWEEN 'intraday_${f}' AND 'intraday_${t}')
 ),
@@ -114,9 +117,11 @@ sess AS (
     COALESCE(ARRAY_AGG(p_source IGNORE NULLS ORDER BY event_timestamp LIMIT 1)[SAFE_OFFSET(0)], ANY_VALUE(u_source), '(direct)') AS src,
     COALESCE(ARRAY_AGG(p_medium IGNORE NULLS ORDER BY event_timestamp LIMIT 1)[SAFE_OFFSET(0)], ANY_VALUE(u_medium), '(none)') AS med,
     COALESCE(ARRAY_AGG(p_campaign IGNORE NULLS ORDER BY event_timestamp LIMIT 1)[SAFE_OFFSET(0)], ANY_VALUE(u_campaign), '(not set)') AS camp,
+    COALESCE(ARRAY_AGG(p_content IGNORE NULLS ORDER BY event_timestamp LIMIT 1)[SAFE_OFFSET(0)], '(not set)') AS content,
+    COALESCE(ARRAY_AGG(p_term IGNORE NULLS ORDER BY event_timestamp LIMIT 1)[SAFE_OFFSET(0)], '(not set)') AS term,
     COALESCE(REGEXP_EXTRACT(ARRAY_AGG(IF(event_name = 'page_view', page_location, NULL) IGNORE NULLS ORDER BY event_timestamp LIMIT 1)[SAFE_OFFSET(0)], r'^https?://[^/]+(/[^?#]*)'), '/') AS landing,
-    ANY_VALUE(device_category) AS device_category, ANY_VALUE(os) AS os, ANY_VALUE(browser) AS browser, ANY_VALUE(language) AS language,
-    ANY_VALUE(country) AS country, ANY_VALUE(city) AS city,
+    ANY_VALUE(device_category) AS device_category, ANY_VALUE(os) AS os, ANY_VALUE(os_version) AS os_version, ANY_VALUE(browser) AS browser, ANY_VALUE(language) AS language,
+    ANY_VALUE(country) AS country, ANY_VALUE(region) AS region, ANY_VALUE(city) AS city,
     MAX(engaged) AS engaged,
     SUM(COALESCE(eng_ms, 0)) AS eng_ms,
     COUNTIF(event_name = 'page_view') AS pageviews,
@@ -134,6 +139,8 @@ evs AS (
 }
 
 const PAGE_PATH = "COALESCE(REGEXP_EXTRACT(page_location, r'^https?://[^/]+(/[^?#]*)'), '/')";
+// From the page URL, not device.web_info.hostname: the public sample dataset (and older exports) lack that field.
+const HOST = "COALESCE(LOWER(REGEXP_EXTRACT(page_location, r'^https?://([^/:?#]+)')), '(not set)')";
 const REFERRER_HOST = "COALESCE(LOWER(REGEXP_EXTRACT(page_referrer, r'^https?://(?:www\\.)?([^/:?#]+)')), '(direct)')";
 const SOURCE_MEDIUM = "CONCAT(src, ' / ', med)";
 const COUNTRY = "COALESCE(country, '(not set)')";
@@ -199,6 +206,21 @@ export function bqSql(site: BqSite, family: ReportKey, from: string, to: string)
       break;
     case 'hour':
       body = evFamily(`FORMAT('%02d', EXTRACT(HOUR FROM TIMESTAMP_MICROS(event_timestamp) AT TIME ZONE '${tz}'))`, "''", site.keyEvents);
+      break;
+    case 'region':
+      body = sessFamily(COUNTRY, "COALESCE(region, '(not set)')");
+      break;
+    case 'utm_content':
+      body = sessFamily('content', 'camp');
+      break;
+    case 'utm_term':
+      body = sessFamily('term', 'camp');
+      break;
+    case 'os_version':
+      body = sessFamily("COALESCE(os, '(not set)')", "COALESCE(os_version, '(not set)')");
+      break;
+    case 'host':
+      body = evFamily(HOST, "''", site.keyEvents, 'page_location IS NOT NULL');
       break;
     // Pair families (drill-down). Session-level pairs read `sess`; event-level
     // pairs whose key needs session attribution read `evs` (events joined to their session).

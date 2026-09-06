@@ -4,7 +4,8 @@
 export type ChartType = 'kpi' | 'line' | 'bar' | 'column' | 'donut' | 'table' | 'list' | 'note';
 
 export type SortDir = 'asc' | 'desc';
-export type Bucket = 'day' | 'week' | 'month';
+/** Time buckets; 'hour' exists only for site-wide totals over a day or two (the `hour` family). */
+export type Bucket = 'hour' | 'day' | 'week' | 'month';
 
 export type FilterOp = 'eq' | 'neq' | 'contains' | 'not_contains';
 export interface Filter {

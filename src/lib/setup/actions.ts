@@ -5,7 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { getProperty } from '@/lib/google/admin';
 import { bigQuery } from '@/lib/google/bigquery';
 import { bqTablesSql } from '@/lib/analytics/bq-sql';
-import { enqueueBackfill } from '@/lib/analytics/ingest';
+import { enqueueBackfill, missingFamilies } from '@/lib/analytics/ingest';
 import { rollupSpan } from '@/lib/analytics/rollups';
 import { createRun, cancelActiveRuns } from '@/lib/db/ingestRuns';
 import { createSite, deleteSite, getSite, updateSite, type SiteInput } from '@/lib/db/sites';
@@ -148,6 +148,27 @@ export async function backfillSite(siteId: string, window: { days?: number; from
     await enqueueBackfill(site, window, 'backfill');
     revalidatePath('/settings/ingestion');
     return { ok: true, data: undefined };
+  } catch (e) {
+    return fail(e);
+  }
+}
+
+/**
+ * Settings → Ingestion: ingest the report families added to the app after
+ * this site was backfilled, over the window the site already holds.
+ */
+export async function backfillMissingFamilies(siteId: string): Promise<ActionResult<{ families: number }>> {
+  try {
+    const site = await getSite(siteId);
+    if (!site) return { ok: false, error: 'Site not found' };
+    const missing = await missingFamilies(site);
+    if (!missing.length) return { ok: false, error: 'Nothing is missing for this site.' };
+    const span = await rollupSpan(site.id);
+    if (!span.from || !span.to) return { ok: false, error: 'Backfill the site first.' };
+    await enqueueBackfill(site, { from: span.from, to: span.to }, 'manual', `only:${missing.join(',')}`);
+    revalidatePath('/settings/ingestion');
+    revalidatePath('/', 'layout');
+    return { ok: true, data: { families: missing.length } };
   } catch (e) {
     return fail(e);
   }
