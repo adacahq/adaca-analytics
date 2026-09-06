@@ -9,6 +9,7 @@ import { navGroups, type DashboardLink } from '@/lib/nav';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import Nav from './Nav';
 import Topbar from './Topbar';
+import DrawerSites from './DrawerSites';
 import type { SavedSegmentOption } from './SegmentControl';
 import type { PaletteKey } from '@/lib/palette';
 
@@ -74,9 +75,13 @@ export default function AppShell({
           <span>Analytics</span>
         </Link>
         <Nav groups={groups} />
-        {/* Drawer-only theme toggle: the topbar's is hidden on small screens. */}
-        <div className="sbtgl">
-          <ThemeToggle />
+        {/* Drawer-only foot: the site picker and the theme toggle, both of which
+            leave the topbar on small screens. */}
+        <div className="sbfoot">
+          <DrawerSites sites={sites} currentSiteId={currentSiteId} onDone={() => setOpenedAt(null)} />
+          <div className="sbtgl">
+            <ThemeToggle />
+          </div>
         </div>
       </aside>
       <main className="page min-h-svh">

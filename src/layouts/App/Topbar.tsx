@@ -24,9 +24,10 @@ function showsFilter(pathname: string): boolean {
 /**
  * The topbar: the site switcher on the left (which doubles as the position
  * readout when there is nothing to switch), the period and the filter in the
- * middle, the live count and the theme toggle on the right. On mobile it
- * also carries the drawer's menu button — it is the one bar across every
- * viewport.
+ * middle, the live count and the theme toggle on the right. Below the drawer
+ * breakpoint the site switcher and the live count leave the bar (the site
+ * picker sits at the bottom of the drawer) and the Menu button takes the
+ * right end — it is the one bar across every viewport.
  */
 export default function Topbar({
   sites,
@@ -55,9 +56,6 @@ export default function Topbar({
   return (
     <header className="tb">
       <div className="tbl">
-        <button type="button" className="tbmenu" onClick={onMenu} aria-label="Open navigation">
-          Menu
-        </button>
         {sites.length > 0 ? (
           <SiteSwitcher sites={sites} currentSiteId={currentSiteId} pathname={pathname} />
         ) : sectionLabel ? (
@@ -75,9 +73,12 @@ export default function Topbar({
           <LiveChip siteId={site.id} />
         </div>
       ) : null}
-      <div className="tbctl">
+      <div className="tbctl theme">
         <ThemeToggle />
       </div>
+      <button type="button" className="tbmenu" onClick={onMenu} aria-label="Open navigation">
+        Menu
+      </button>
     </header>
   );
 }
