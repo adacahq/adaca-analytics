@@ -2,6 +2,7 @@
 
 import { activeGroupAndSection } from '@/lib/nav';
 import type { NavGroup } from '@/lib/nav';
+import Link from 'next/link';
 import ThemeToggle from '@/components/ui/ThemeToggle';
 import SiteSwitcher from './SiteSwitcher';
 import DateRange from './DateRange';
@@ -59,6 +60,10 @@ export default function Topbar({
   return (
     <header className="tb">
       <div className="tbl">
+        {/* Small screens only: the mark balances the hamburger at the other end. */}
+        <Link href="/" className="tbbrand" aria-label="Home">
+          <img src="/apple-touch-icon.png" alt="" width={26} height={26} />
+        </Link>
         {sites.length > 0 ? (
           <SiteSwitcher sites={sites} currentSiteId={currentSiteId} pathname={pathname} />
         ) : sectionLabel ? (

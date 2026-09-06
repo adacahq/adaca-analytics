@@ -302,6 +302,7 @@ html[data-theme='dark'] .sb { --rail-top: #0a1524; --rail-bottom: #0a1524; }
    the drawer is open. Hidden until the rail becomes a drawer. */
 .tbmenu { display: none; width: 40px; height: 40px; padding: 0; place-items: center; background: none; border: none; color: var(--fg); cursor: pointer; border-radius: 8px; transition: background 0.25s; }
 .tbmenu:hover { background: var(--ghost); }
+.tbbrand { display: none; }
 .tbmenu .hb { position: relative; display: block; width: 18px; height: 12px; }
 .tbmenu .hb i { position: absolute; left: 0; width: 18px; height: 1.5px; border-radius: 1px; background: currentColor; transition: top 0.3s var(--ease), transform 0.3s var(--ease), opacity 0.2s; }
 .tbmenu .hb i:nth-child(1) { top: 0; }
@@ -364,9 +365,13 @@ main.page { margin-left: var(--sb-w); padding-top: 56px; }
      right end stays lit and tappable while the drawer is open. */
   .scrim { display: block; position: fixed; inset: 0; z-index: 53; background: rgba(10, 21, 36, 0.4); backdrop-filter: blur(2px); }
   .tb { padding: 0 16px; gap: 10px; z-index: 54; }
-  /* The hamburger takes the right end; the site switcher and the live count
-     leave the bar (the drawer's foot carries the site picker). */
+  /* The hamburger takes the right end and the mark the left; the site
+     switcher and the live count leave the bar (the drawer's foot carries the
+     site picker). */
   .tbmenu { display: grid; margin-right: -8px; }
+  .tbbrand { display: inline-flex; align-items: center; padding: 4px; margin-left: -4px; border-radius: 9px; }
+  .tbbrand img { display: block; width: 26px; height: 26px; border-radius: 7px; }
+  .tbbrand:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
   .tbl > .tbdrop { display: none; }
   .tbctl.live { display: none; }
   .wrap { padding: 72px 20px 112px; }
