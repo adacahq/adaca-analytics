@@ -53,10 +53,10 @@ export async function rollupSpan(siteId: string): Promise<{ from: string | null;
   return { from: r?.from_date ?? null, to: r?.to_date ?? null, rows: all?.n ?? 0 };
 }
 
-/** Rows per family for a site (which families it holds at all). */
-export async function familyRowCounts(siteId: string): Promise<Map<string, number>> {
-  const { results } = await db().prepare('SELECT report, COUNT(*) AS n FROM rollups WHERE site_id = ? GROUP BY report').bind(siteId).all<{ report: string; n: number }>();
-  return new Map(results.map((r) => [r.report, r.n]));
+/** Per family for a site: the first day it holds and its row count (which families it holds, and since when). */
+export async function familySpans(siteId: string): Promise<Map<string, { from: string; rows: number }>> {
+  const { results } = await db().prepare('SELECT report, MIN(date) AS from_date, COUNT(*) AS n FROM rollups WHERE site_id = ? GROUP BY report').bind(siteId).all<{ report: string; from_date: string; n: number }>();
+  return new Map(results.map((r) => [r.report, { from: r.from_date, rows: r.n }]));
 }
 
 /** The first day a site holds (for the "All time" preset), or null before its first backfill. */

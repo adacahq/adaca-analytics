@@ -11,7 +11,7 @@
 import { addDays, daysBetween, todayInZone } from './ranges';
 import { GA_METRICS, PAIR_ROWS_PER_DAY, REPORTS, REPORT_BY_KEY, capPerDay, gaDateToIso, mergeRows, normaliseKeys, type ReportKey, type RollupRow } from './reports';
 import { bqSql, datasetRef } from './bq-sql';
-import { clearRollups, familyRowCounts, writeRollups } from './rollups';
+import { clearRollups, familySpans, writeRollups } from './rollups';
 import { runReport } from '@/lib/google/ga4';
 import { bigQuery } from '@/lib/google/bigquery';
 import { listKeyEvents } from '@/lib/google/admin';
@@ -63,11 +63,22 @@ export function familiesFor(site: Site, scope: RunScope = 'all'): ReportKey[] {
   return supported.filter((r) => (r.pair ? site.drilldown === 1 || scope === 'pairs' : scope !== 'pairs')).map((r) => r.key);
 }
 
-/** Families the site should hold but has no rows for — added to the registry after its backfill. */
+/**
+ * Families the site should hold but does not, or holds only from the hourly
+ * refresh onwards (added to the registry after its backfill: the refresh
+ * fills the trailing days, the history before them is missing). Judged
+ * against the totals family's first day, with the refresh window as slack.
+ */
 export async function missingFamilies(site: Site): Promise<ReportKey[]> {
   if (!site.last_ingested_date) return [];
-  const counts = await familyRowCounts(site.id);
-  return familiesFor(site, 'all').filter((k) => !counts.get(k));
+  const spans = await familySpans(site.id);
+  const earliest = spans.get('totals')?.from;
+  if (!earliest) return [];
+  const slack = addDays(earliest, REFRESH_DAYS + 1);
+  return familiesFor(site, 'all').filter((k) => {
+    const s = spans.get(k);
+    return !s || s.rows === 0 || s.from > slack;
+  });
 }
 
 /** Total units a run needs (families × chunks), for progress display. */
